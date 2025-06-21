@@ -283,22 +283,7 @@
     </script>
 
     <script>
-        $(document).ready(function () {
-            $("#searchInput").on("keyup", function () {
-                var value = $(this).val().toLowerCase();
-
-                $("#companyTableBody tr").filter(function () {
-                    var name = $(this).find("td:nth-child(1)").text().toLowerCase(); // Name Column
-                 
-
-                    $(this).toggle(name.indexOf(value) > -1 );
-                });
-            });
-        });
-
-
-        
-            
+       
    
               $(document).ready(function () {
           $(".company-row").click(function (e) {
