@@ -31,7 +31,6 @@
                 <thead>
                     <tr>
                         <th>Name</th>
-                        <th>Status</th>
                         <th>Company</th>
                         <th>Access Level</th>
                         <th>Added On</th>
@@ -43,7 +42,6 @@
                     {
                         <tr id="row-@member.Id" class="member-row" data-id="@member.Id">
                             <td>@member.Name</td>
-                            <td>@member.Status</td>
                             <td>@member.Company</td>
                             <td>@member.GlobalAccessLevel</td>
                             <td>@member.AddedOn</td>
@@ -111,7 +109,6 @@
                     tbody.append(`
                         <tr id="row-${member.id}" class="member-row" data-id="${member.id}">
                             <td>${member.name}</td>
-                            <td>${member.status}</td>
                             <td>${member.company}</td>
                             <td>${accessLevels}</td>
                             <td>${member.addedOn}</td>
@@ -247,8 +244,7 @@
                     email: $("#memberEmail").val(),
                     globalAccessLevelID: $("#memberRole").val() || null,
                     companyId: $("#memberCompany").val() || null,
-                    status: $("#memberStatus").val(),
-               
+
                 };
 
                 console.log("Sending memberData:", JSON.stringify(member));
@@ -285,7 +281,7 @@
                 e.stopPropagation();
                 var memberId = $(this).data("id");
                 $(this).closest(".action-menu").hide();
-                
+
                     $.ajax({
                         url: "/Member/Delete/" + memberId,
                         type: "POST",
@@ -298,7 +294,7 @@
                             toastr.error("Failed to delete member.");
                         }
                     });
-                
+
             });
         });
     </script>

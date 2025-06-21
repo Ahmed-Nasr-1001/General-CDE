@@ -1,0 +1,39 @@
+﻿@model List<ACC.ViewModels.ReviewsVM.CommentsVM>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No comments available.</div>
+}
+else
+{
+    <ul class="list-group">
+        @foreach (var comment in Model)
+        {
+            <li class="list-group-item">
+                <strong>@comment.ReviewerName</strong>
+                <span class="text-muted"> (Step: @comment.StepOrder)</span><br />
+                @comment.Comment
+                <div class="text-end text-muted small">@comment.CreatedAt</div>
+            </li>
+        }
+    </ul>
+}
+
+@if (ViewBag.CurrentUserId != ViewBag.Initiator)
+{
+    <form id="commentForm" class="comment-form" asp-action="AddComment" method="post" class="mt-4">
+        <input type="hidden" name="documentId" value="@ViewBag.DocumentId" />
+        <input type="hidden" name="reviewId" value="@ViewBag.ReviewId" />
+        <input type="hidden" name="stepOrder" value="@ViewBag.StepOrder" />
+
+        <div class="form-group">
+            <label for="comment">Add Comment</label>
+            <textarea name="comment" class="form-control" rows="3" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary mt-2">
+            <i class="bi bi-send"></i> Submit
+        </button>
+    </form>
+}
+
+

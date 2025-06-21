@@ -1,11 +1,12 @@
-﻿using System;
+﻿using BusinessLogic.Repository.RepositoryInterfaces;
+using DataLayer;
+using DataLayer.Models;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using BusinessLogic.Repository.RepositoryInterfaces;
-using DataLayer;
-using DataLayer.Models;
 
 namespace BusinessLogic.Repository.RepositoryClasses
 {
@@ -24,7 +25,7 @@ namespace BusinessLogic.Repository.RepositoryClasses
 
         public IList<ReviewDocument> GetAll()
         {
-            return _context.Set<ReviewDocument>().ToList();
+            return _context.Set<ReviewDocument>().Include(r=>r.Review).Include(r=>r.Document).Include(r=>r.Comments).ToList();
         }
 
         public ReviewDocument GetById(int id)
@@ -44,6 +45,24 @@ namespace BusinessLogic.Repository.RepositoryClasses
         public void Save()
         {
             _context.SaveChanges();
+        }
+
+        public IList<ReviewDocumentComment> GetAllComments()
+        {
+            return _context.Set<ReviewDocumentComment>()
+                .Include(c => c.Reviewer)
+                .Include(c => c.Review)
+                .Include(c => c.Document)
+                .OrderByDescending(c => c.CreatedAt).ToList();
+        }
+
+        public bool WasDocRejectedByThisUser(string currentUserId , int reviewId , int documentId)
+        {
+            return _context.Set<ReviewDocumentComment>().Any(c => c.ReviewId == reviewId && c.ReviewerId == currentUserId && c.DocumentId == documentId);
+        }
+        public void InsertComment(ReviewDocumentComment obj)
+        {
+            _context.Set<ReviewDocumentComment>().Add(obj);
         }
     }
 }

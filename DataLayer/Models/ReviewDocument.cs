@@ -14,7 +14,7 @@ namespace DataLayer.Models
         public int DocumentId { get; set; }
         public Document Document { get; set; }
 
-        public string? Comment { get; set; }
+        public List<ReviewDocumentComment>? Comments { get; set; }
         public string? Status { get; set; } 
 
         public bool? IsApproved { get; set; }

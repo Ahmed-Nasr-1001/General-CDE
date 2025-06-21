@@ -69,9 +69,11 @@ namespace ACC.Controllers
             var projectMembers = pagedUsers.Select(m => new ProjectMembersVM
             {
                 Id = m.Id,
+                FirstName = m.FirstName,
+                LastName = m.LastName,
+                MobilePhone = m.MobilePhone,
                 Name = m.UserName,
-                Email = m.Email,
-                Status = m.Status,
+                Email = m.UserName,
                 Company = m.Company?.Name ?? "No Company",
                 AddedOn = m.AddedOn,
                 Position = _userRoleService.GetPosition(m.Id , ProjectId).Name,
@@ -92,8 +94,9 @@ namespace ACC.Controllers
         [HttpPost]
         [HasRoles(GlobalAccessLevels.AccountAdmin, ProjectAccessLevels.ProjectAdmin)]
 
-        public async Task<IActionResult> InsertMember(InsertMemberVM memberFromReq , int ProjectId)
+        public async Task<IActionResult> InsertMember(InserProjecttMembersVM memberFromReq , int ProjectId)
         {
+            
            
             var memebr = _userManager.Users.Where(u=>u.UserName == memberFromReq.Name).FirstOrDefault();
 
@@ -156,7 +159,6 @@ namespace ACC.Controllers
                 {
                     userName = member.UserName,
                     email = member.Email,
-                    status = member.Status,
                     company = member.Company?.Name,
                     role = _userRoleService.GetByUserId(id , ProjectId).Role.Name,
                     accessLevels = member.AccessLevel
@@ -245,8 +247,7 @@ namespace ACC.Controllers
 
         {
 
-            if (ModelState.IsValid)
-            {
+            
                 var member = _userManager.Users.FirstOrDefault(u => u.Id == id);
                 if (member == null)
                 {
@@ -254,9 +255,12 @@ namespace ACC.Controllers
                 }
 
 
-                var insertMemberVM = new InsertMemberVM
+                var insertProjectMemberVM = new InserProjecttMembersVM
                 {
-                    Email = member.Email,
+                    FirstName = member.FirstName,
+                    LastName = member.LastName,
+                    MobilePhone=member.MobilePhone,
+                    Email = member.UserName,
                     CompanyId = member.CompanyId,
                     currentCompany = _companyRepository.GetById(member.CompanyId ?? 0)?.Name,
                     PositionId = _userRoleService.GetPosition(id , ProjectId).Id,
@@ -271,12 +275,9 @@ namespace ACC.Controllers
                 ViewBag.ProjectAccessLevelsList = new SelectList(_userRoleService.AllProjectAccessLevels(), "Id", "Name");
                 ViewBag.ProjId = ProjectId;
 
-                return PartialView("PartialViews/_UpdateProjectMembersPartialView", insertMemberVM);
-            }
-
-          
-
-            return PartialView("PartialViews/_UpdateProjectMembersPartialView", ModelState);
+                return PartialView("PartialViews/_UpdateProjectMembersPartialView", insertProjectMemberVM);
+  
+           
         }
     }
 }

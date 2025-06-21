@@ -9,7 +9,7 @@ namespace DataLayer.Models
 {
     public class ApplicationUserRole : IdentityUserRole<string>
     {
-        
+        public int Id { get; set; }
         public int? ProjectId { get; set; }
         public Project? Project { get; set; }
         public ApplicationUser User { get; set; }

@@ -2,7 +2,8 @@
 @model List<ReviewVM>
 @{
     Layout = "_ProjectLayout";
-}
+  
+ }
 
 
 <!DOCTYPE html>
@@ -61,21 +62,39 @@
             cursor: pointer;
         }
 
-.titleContainer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+        .titleContainer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .TitleItem {
+            font-size: 16px;
+            color: black;
+            font-weight: 500;
+            text-decoration: none;
+        }
+        .TitleItem:hover {
+            text-decoration: underline;
+        }
+        
+          .nav-links{
+            padding-top: 20px;
+        }
+     
 
-.TitleItem {
-    font-size: 16px;
-    color: black;
-    font-weight: 500;
+       .nav-links a {
+    margin-right: 20px;
+    color: #666;
     text-decoration: none;
+    font-size: 18px; 
+    font-weight: 500; 
 }
-.TitleItem:hover {
-    text-decoration: underline;
-}
+        
+        .nav-links a.active {
+        	color: #007bff;
+        	border-bottom: 2px solid #007bff;
+        }
 
       
 
@@ -87,8 +106,13 @@
    <div class="container-fluid p-4">
         <h1 class="mb-0">Reviews</h1>
         <br />
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">Reviews</h4>
+    <div id="TopNav" class="d-flex justify-content-between align-items-center mb-3">
+        	<div class="nav-links mb-3">
+				<a href="@Url.Action("Index", new { id = ViewBag.Id ,  showArchived = false })"  class="@(ViewBag.ShowArchived == false ? "active" : "")">Active</a>
+				<a href="@Url.Action("Index", new { id = ViewBag.Id ,  startedByMe = true })"  class="@(ViewBag.StartedByMe == true ? "active" : "")">Started By Me</a>
+				<a href="@Url.Action("Index", new { id = ViewBag.Id ,  reviewedByMe = true })"  class="@(ViewBag.ReviewedByMe == true ? "active" : "")">Reviewed By Me</a>
+				<a href="@Url.Action("Index", new { id = ViewBag.Id , showArchived = true })"  class="@(ViewBag.ShowArchived == true ? "active" : "")">Archived</a>
+			</div>
         @if (ViewBag.id != null)
         {
             <a class="btn btn-outline-secondary" asp-controller="Workflow" asp-action="Index" asp-route-id="@ViewBag.id">
@@ -118,8 +142,12 @@
                     <th>Step</th>
                     <th>Workflow</th>
                     <th>Created At</th>
+                  
                     <th>Final Status</th>
-                    <th>Action</th>
+                       @if(ViewBag.StartedByMe == true)
+                       {
+                        <th>Action</th>
+                       }
 
                 </tr>
             </thead>
@@ -131,29 +159,21 @@
                         <td>@item.CurrentStepView</td>
                         <td>@item.WorkflowName</td>
                         <td>@item.CreatedAt</td>
+                       
                         <td>@item.FinalReviewStatus</td>
+
+                    @if (ViewBag.StartedByMe == true)
+                    {
                             <td>
-                        @if(ViewBag.CurrentUserId != item.Initiator)
-                        {
-                                <form asp-action="Approve" method="post" asp-route-Id="@item.Id" style="display:inline">
-                                    <button type="submit" class="btn btn-success btn-sm">Approve</button>
-                                </form>
-
-                                <form asp-action="Reject" method="post" asp-route-Id="@item.Id" style="display:inline">
-                                    <button type="submit" class="btn btn-danger btn-sm">Reject</button>
-                                </form>
-
-                        }
-                        else
-                        {
+                        
                              <form asp-action="StartReview" method="post" asp-route-Id="@item.Id" style="display:inline">
                                  <button type="submit" class="btn btn-success btn-sm" @(item.CurrentStepView != "Pending" || item.FinalReviewStatus == "Approved" ? "disabled" : "")>
                                      Start Review
                                  </button>
                              </form>
                             
+                            </td>
                         }
-                    </td>
                        
                        
                         <td>

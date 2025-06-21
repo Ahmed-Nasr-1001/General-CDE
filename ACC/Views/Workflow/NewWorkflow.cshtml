@@ -1,8 +1,10 @@
 ﻿@model ACC.ViewModels.WorkflowVM.WorkflowTemplateViewModel
-
-
+@{
+    Layout = "_ProjectLayout";
+}
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <style>
     .custom-switch {
@@ -33,10 +35,13 @@
         }
 </style>
 
+
+
+
 <div class="container mt-4">
     <h2>Create New Workflow Template</h2>
 
-    <form asp-controller="Workflow" asp-action="CreateTemplate" method="post">
+    <form asp-controller="Workflow" asp-action="CreateTemplate" method="post" novalidate>
         <input type="hidden" name="proId" value="@ViewBag.Id" />
 
         <div class="mb-3">
@@ -64,52 +69,73 @@
                 <div class="card-body">
                     <input type="hidden" name="Steps[@i].StepOrder" value="@(i + 1)" />
 
+                    <!-- Replace your role selector with this -->
                     <div class="mb-3">
                         <label for="role-selector-@i" class="form-label">Role</label>
-                        <select name="Steps[@i].SelectedPositionId"
+                        <select name="Steps[@i].selectedPositionId"
                                 id="role-selector-@i"
                                 class="form-control role-selector"
-                                data-step="@i">
+                                data-step="@i"
+                                required
+                                data-val="true"
+                                data-val-required="Role is required.">
                             <option value="">-- Select Role --</option>
                             @foreach (var role in Model.ProjectPositions)
                             {
                                 <option value="@role.Name">@role.Name</option>
                             }
                         </select>
+                        <div class="invalid-feedback">Role is required.</div>
                     </div>
 
+                    <!-- Replace your reviewer type selector with this -->
                     <div class="mb-3">
                         <label class="form-label">Reviewer Type</label>
                         <select name="Steps[@i].SelectedReviewersType"
                                 class="form-control reviewer-type-selector"
                                 data-step="@i"
-                                asp-items="@(new SelectList(Model.ReviewersType))">
+                                asp-items="@(new SelectList(Model.ReviewersType))"
+                                required
+                                data-val="true"
+                                data-val-required="Reviewer type is required.">
                             <option value="">-- Select Type --</option>
                         </select>
+                        <div class="invalid-feedback">Reviewer type is required.</div>
+                        <span asp-validation-for="Steps[@i].SelectedReviewersType" class="text-danger"></span>
                     </div>
 
+                    <!-- Update single reviewer dropdown -->
                     <div class="form-group single-reviewers" data-step="@i" style="display:none;">
                         <label for="single-reviewers-@i">Reviewer (Single)</label>
                         <select name="Steps[@i].AssignedUsersIds"
                                 class="form-control single-reviewer-dropdown"
                                 id="single-reviewers-@i"
-                                data-step="@i">
+                                data-step="@i"
+                                data-val="true"
+                                data-val-singlereviewerrequired="Please select a reviewer.">
                             <option value="">-- Select Reviewer --</option>
                         </select>
+                        <div class="invalid-feedback">Please select a reviewer.</div>
                     </div>
 
+                    <!-- Update multiple reviewers dropdown -->
                     <div class="form-group multi-reviewers" data-step="@i" style="display:none;">
                         <label for="multi-reviewers-@i">Reviewers (Multiple)</label>
                         <select name="Steps[@i].AssignedUsersIds"
                                 class="form-control multi-reviewer-dropdown"
                                 id="multi-reviewers-@i"
                                 multiple
-                                data-step="@i">
+                                data-step="@i"
+                                data-val="true"
+                                data-val-multireviewerrequired="Please select at least one reviewer.">
                         </select>
+                        <div class="invalid-feedback">Please select at least one reviewer.</div>
 
                         <details class="mt-2">
                             <summary>Advanced Options</summary>
-                            <select name="Steps[@i].SelectedOption" class="form-control mt-2">
+                            <select name="Steps[@i].SelectedOption"
+                                    class="form-control mt-2 selected-option-input"
+                                    data-step="@i">
                                 <option value="">Select Option</option>
                                 @foreach (var item in ViewBag.MultiReviwerOptions)
                                 {
@@ -119,13 +145,22 @@
 
                             <div class="mb-3 mt-2">
                                 <label asp-for="Steps[@i].MinReviewers" class="form-label">Min Number of Reviewers</label>
-                                <input asp-for="Steps[@i].MinReviewers" class="form-control" type="number" min="1" />
+                                <input asp-for="Steps[@i].MinReviewers"
+                                       class="form-control min-reviewers-input"
+                                       type="number"
+                                       min="1"
+                                       data-step="@i"
+                                       data-val="true"
+                                       data-val-minreviewersrequired="Minimum reviewers is required for this option." />
                             </div>
                         </details>
                     </div>
                 </div>
             </div>
         }
+
+
+
 
         <h4 class="mt-4">Action upon completion</h4>
         <div class="custom-switch-wrapper mb-3 d-flex align-items-center justify-content-between p-3 border rounded shadow-sm">
@@ -142,99 +177,300 @@
             <partial name="PartialViews/_DistenationFolderPartialView" />
         </div>
 
+
         <button type="submit" class="btn btn-success">Create Workflow</button>
         <a asp-controller="Workflow" asp-action="Index" class="btn btn-secondary">Cancel</a>
     </form>
 </div>
 
+@section Scripts {
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        // 🟢 1. تحميل جميع المراجعين
-        const allReviewers = @Html.Raw(Json.Serialize(Model.Reviewers));
-        console.log("Reviewers Loaded:", allReviewers);
+   
 
-        // 🟢 2. إظهار عناصر Single / Multiple بناءً على نوع المراجع
-        document.querySelectorAll(".reviewer-type-selector").forEach(select => {
-            const stepIndex = select.dataset.step;
-            const singleDiv = document.querySelector(`.single-reviewers[data-step="${stepIndex}"]`);
-            const multiDiv = document.querySelector(`.multi-reviewers[data-step="${stepIndex}"]`);
+    <script>
 
-            function toggleReviewerUI() {
-                const selected = select.value;
-                if (selected === "Single" || selected === "0") {
-                    singleDiv.style.display = "block";
-                    multiDiv.style.display = "none";
-                } else if (selected === "Multiple" || selected === "1") {
-                    singleDiv.style.display = "none";
-                    multiDiv.style.display = "block";
-                } else {
-                    singleDiv.style.display = "none";
-                    multiDiv.style.display = "none";
-                }
+                 document.addEventListener("DOMContentLoaded", function () {
+            const copyApprovedCheckbox = document.getElementById("copyApprovedFiles");
+            const folderContainer = document.getElementById("destinationFolderContainer");
+
+            if (copyApprovedCheckbox) {
+                copyApprovedCheckbox.addEventListener("change", function () {
+                    if (this.checked) {
+                        folderContainer.style.display = "block";
+                        const modalEl = document.getElementById('foldersTree');
+                        if (modalEl) {
+                            const modal = new bootstrap.Modal(modalEl);
+                            modal.show();
+                        }
+                    } else {
+                        folderContainer.style.display = "none";
+                    }
+                });
             }
 
-            select.addEventListener("change", toggleReviewerUI);
-            toggleReviewerUI(); // تأكد من الحالة المبدئية
+            // Rest of your existing JavaScript code continues here...
+            const allReviewers = @Html.Raw(Json.Serialize(Model.Reviewers));
+
+            // ... (keep all your existing validation and other logic)
         });
 
-        // 🟢 3. عند تغيير الدور يتم فلترة المراجعين حسب RoleName
-        document.querySelectorAll(".role-selector").forEach(selector => {
-            selector.addEventListener("change", function () {
-                const stepIndex = this.dataset.step;
-                const selectedRoleName = this.value;
 
-                const filtered = allReviewers.filter(r =>
-                    r.roleName?.toLowerCase() === selectedRoleName.toLowerCase()
-                );
+        document.addEventListener("DOMContentLoaded", function () {
+            const allReviewers = @Html.Raw(Json.Serialize(Model.Reviewers));
 
-                const singleDropdown = document.getElementById(`single-reviewers-${stepIndex}`);
-                const multiDropdown = document.getElementById(`multi-reviewers-${stepIndex}`);
+            // Custom jQuery validation methods
+            $.validator.addMethod("reviewertyperequired", function(value, element) {
+                return value !== "" && value !== null;
+            }, "Reviewer type is required");
 
-                // تفريغ القوائم
-                singleDropdown.innerHTML = '<option value="">-- Select Reviewer --</option>';
-                multiDropdown.innerHTML = '';
+            $.validator.addMethod("singlereviewerrequired", function(value, element) {
+                const stepIndex = $(element).closest('[data-step]').attr('data-step') || $(element).attr('data-step');
+                const reviewerTypeSelect = $(`.reviewer-type-selector[data-step="${stepIndex}"]`);
+                const reviewerType = reviewerTypeSelect.val();
 
-                // تعبئة القوائم بالمراجعين المناسبين
-                filtered.forEach(r => {
-                    const option = new Option(r.userName, r.userId);
-                    singleDropdown.add(option.cloneNode(true));
-                    multiDropdown.add(option);
+                if (reviewerType === "Single" || reviewerType === "0") {
+                    return value !== "" && value !== null;
+                }
+                return true;
+            }, "Please select a reviewer");
+
+            $.validator.addMethod("multireviewerrequired", function(value, element) {
+                const stepIndex = $(element).closest('[data-step]').attr('data-step') || $(element).attr('data-step');
+                const reviewerTypeSelect = $(`.reviewer-type-selector[data-step="${stepIndex}"]`);
+                const reviewerType = reviewerTypeSelect.val();
+
+                if (reviewerType === "Multiple" || reviewerType === "1") {
+                    const selectedOptions = $(element).find("option:selected");
+                    return selectedOptions.length > 0;
+                }
+                return true;
+            }, "Please select at least one reviewer");
+
+            $.validator.addMethod("minreviewersrequired", function(value, element) {
+                const stepIndex = $(element).closest('[data-step]').attr('data-step') || $(element).attr('data-step');
+                const reviewerTypeSelect = $(`.reviewer-type-selector[data-step="${stepIndex}"]`);
+                const selectedOptionSelect = $(`.selected-option-input[data-step="${stepIndex}"]`);
+
+                const reviewerType = reviewerTypeSelect.val();
+                const selectedOption = selectedOptionSelect.val();
+
+                if (reviewerType === "Multiple" || reviewerType === "1") {
+                    if (selectedOption === "A minimum number of key reviewers must review this step") {
+                        return value && parseInt(value) > 0;
+                    }
+                    if (!selectedOption || selectedOption === "") {
+                        return value && parseInt(value) > 0;
+                    }
+                }
+                return true;
+            }, "Please enter the minimum number of reviewers");
+
+            // Role selector change handler
+            document.querySelectorAll(".role-selector").forEach(selector => {
+                selector.addEventListener("change", function () {
+                    const stepIndex = this.dataset.step;
+                    const selectedRoleName = this.value;
+                    const filtered = allReviewers.filter(r =>
+                        r.roleName?.toLowerCase() === selectedRoleName.toLowerCase()
+                    );
+
+                    const singleDropdown = document.getElementById(`single-reviewers-${stepIndex}`);
+                    const multiDropdown = document.getElementById(`multi-reviewers-${stepIndex}`);
+
+                    singleDropdown.innerHTML = '<option value="">-- Select Reviewer --</option>';
+                    multiDropdown.innerHTML = '';
+
+                    filtered.forEach(r => {
+                        const option = new Option(r.userName, r.userId);
+                        singleDropdown.add(option.cloneNode(true));
+                        multiDropdown.add(option);
+                    });
+
+                    // Clear validation messages when role changes
+                    $(singleDropdown).removeClass("is-invalid").next(".invalid-feedback").remove();
+                    $(multiDropdown).removeClass("is-invalid").next(".invalid-feedback").remove();
+
+                    const reviewerType = document.querySelector(`.reviewer-type-selector[data-step="${stepIndex}"]`);
+                    if (reviewerType) {
+                        reviewerType.dispatchEvent(new Event("change"));
+                    }
+                });
+            });
+
+            // Reviewer type selector change handler
+            document.querySelectorAll(".reviewer-type-selector").forEach(select => {
+                const stepIndex = select.dataset.step;
+                const singleDiv = document.querySelector(`.single-reviewers[data-step="${stepIndex}"]`);
+                const multiDiv = document.querySelector(`.multi-reviewers[data-step="${stepIndex}"]`);
+
+                function toggleReviewerUI() {
+                    const selected = select.value;
+                    if (selected === "Single" || selected === "0") {
+                        singleDiv.style.display = "block";
+                        multiDiv.style.display = "none";
+                        $(multiDiv).find('select').removeClass("is-invalid").next(".invalid-feedback").remove();
+                    } else if (selected === "Multiple" || selected === "1") {
+                        singleDiv.style.display = "none";
+                        multiDiv.style.display = "block";
+                        $(singleDiv).find('select').removeClass("is-invalid").next(".invalid-feedback").remove();
+                    } else {
+                        singleDiv.style.display = "none";
+                        multiDiv.style.display = "none";
+                        $(singleDiv).find('select').removeClass("is-invalid").next(".invalid-feedback").remove();
+                        $(multiDiv).find('select').removeClass("is-invalid").next(".invalid-feedback").remove();
+                    }
+                }
+
+                select.addEventListener("change", toggleReviewerUI);
+                toggleReviewerUI();
+            });
+
+            
+        });
+
+        // jQuery document ready
+        $(document).ready(function () {
+            // Add validation rules to form elements
+            $(".reviewer-type-selector").each(function() {
+                $(this).rules("add", {
+                    reviewertyperequired: true
+                });
+            });
+
+            $(".single-reviewer-dropdown").each(function() {
+                $(this).rules("add", {
+                    singlereviewerrequired: true
+                });
+            });
+
+            $(".multi-reviewer-dropdown").each(function() {
+                $(this).rules("add", {
+                    multireviewerrequired: true
+                });
+            });
+
+            $(".min-reviewers-input").each(function() {
+                $(this).rules("add", {
+                    minreviewersrequired: true
+                });
+            });
+
+            // Handle option select changes to trigger validation
+            $(".selected-option-input").on("change", function() {
+                const stepIndex = $(this).attr('data-step');
+                const minReviewersInput = $(`.min-reviewers-input[data-step="${stepIndex}"]`);
+
+                if (minReviewersInput.length) {
+                    minReviewersInput.valid();
+                }
+            });
+
+            // Enhanced form submission handler
+            $("form").on("submit", function (e) {
+                let isValid = $(this).valid();
+
+                $(".reviewer-type-selector").each(function () {
+                    const step = $(this).data("step");
+                    const type = $(this).val();
+                    const roleSelector = $(`.role-selector[data-step="${step}"]`);
+
+                    // Check if role is selected
+                    if (!roleSelector.val()) {
+                        isValid = false;
+                        roleSelector.addClass("is-invalid");
+                        if (roleSelector.next(".invalid-feedback").length === 0) {
+                            roleSelector.after('<div class="invalid-feedback">Role is required.</div>');
+                        }
+                    } else {
+                        roleSelector.removeClass("is-invalid");
+                        roleSelector.next(".invalid-feedback").remove();
+                    }
+
+                    // Check reviewer type specific validations
+                    if (type === "Single" || type === "0") {
+                        const singleSelect = $(`#single-reviewers-${step}`);
+                        const selected = singleSelect.val();
+                        if (!selected) {
+                            isValid = false;
+                            singleSelect.addClass("is-invalid");
+                            if (singleSelect.next(".invalid-feedback").length === 0) {
+                                singleSelect.after('<div class="invalid-feedback">Please select a reviewer.</div>');
+                            }
+                        } else {
+                            singleSelect.removeClass("is-invalid");
+                            singleSelect.next(".invalid-feedback").remove();
+                        }
+                    }
+
+                    if (type === "Multiple" || type === "1") {
+                        const multiSelect = $(`#multi-reviewers-${step}`);
+                        const selectedOptions = multiSelect.find("option:selected");
+                        const optionSelect = $(`.selected-option-input[data-step="${step}"]`);
+                        const minReviewersInput = $(`.min-reviewers-input[data-step="${step}"]`);
+
+                        if (selectedOptions.length === 0) {
+                            isValid = false;
+                            multiSelect.addClass("is-invalid");
+                            if (multiSelect.next(".invalid-feedback").length === 0) {
+                                multiSelect.after('<div class="invalid-feedback">Please select at least one reviewer.</div>');
+                            }
+                        } else {
+                            multiSelect.removeClass("is-invalid");
+                            multiSelect.next(".invalid-feedback").remove();
+                        }
+
+                        // Check advanced options validation
+                        const selectedOption = optionSelect.val();
+                        const minReviewers = minReviewersInput.val();
+
+                        if (selectedOption === "A minimum number of key reviewers must review this step" && (!minReviewers || parseInt(minReviewers) <= 0)) {
+                            isValid = false;
+                            minReviewersInput.addClass("is-invalid");
+                            if (minReviewersInput.next(".invalid-feedback").length === 0) {
+                                minReviewersInput.after('<div class="invalid-feedback">Please enter the minimum number of reviewers.</div>');
+                            }
+                        } else if (!selectedOption && (!minReviewers || parseInt(minReviewers) <= 0)) {
+                            isValid = false;
+                            if (minReviewersInput.next(".invalid-feedback").length === 0) {
+                                minReviewersInput.after('<div class="invalid-feedback">You must specify either a minimum number of reviewers or select an option.</div>');
+                            }
+                        } else {
+                            minReviewersInput.removeClass("is-invalid");
+                            minReviewersInput.next(".invalid-feedback").remove();
+                        }
+                    }
                 });
 
-                // تشغيل تغيير النوع لتحديث الـ UI
-                const reviewerType = document.querySelector(`.reviewer-type-selector[data-step="${stepIndex}"]`);
-                if (reviewerType) {
-                    reviewerType.dispatchEvent(new Event("change"));
+                if (!isValid) {
+                    e.preventDefault();
+                    console.log("Form submission prevented due to validation errors.");
+
+                    // Scroll to first error
+                    const firstError = $(".is-invalid").first();
+                    if (firstError.length) {
+                        $('html, body').animate({
+                            scrollTop: firstError.offset().top - 100
+                        }, 500);
+                        firstError.focus();
+                    }
+
+                    return false;
                 }
 
-                // ✅ للتصحيح والديباج
-                console.log(`Step ${stepIndex} - Role: ${selectedRoleName}`);
-                console.log("Filtered Reviewers:", filtered);
-                console.log("Available Reviewer RoleNames:", allReviewers.map(r => r.roleName));
+                console.log("Form validation passed, submitting...");
+                return true;
+            });
+
+            // Clear validation errors when user starts typing/selecting
+            $(document).on('change input', '.form-control', function() {
+                if ($(this).hasClass('is-invalid')) {
+                    $(this).removeClass('is-invalid');
+                    $(this).next('.invalid-feedback').remove();
+                }
             });
         });
-
-        // 🟢 4. Copy Approved Files Checkbox - Show Folder Selector
-        const copyApprovedCheckbox = document.getElementById("copyApprovedFiles");
-        const folderContainer = document.getElementById("destinationFolderContainer");
-
-        if (copyApprovedCheckbox) {
-            copyApprovedCheckbox.addEventListener("change", function () {
-                if (this.checked) {
-                    folderContainer.style.display = "block";
-                    const modalEl = document.getElementById('foldersTree');
-                    if (modalEl) {
-                        const modal = new bootstrap.Modal(modalEl);
-                        modal.show();
-                    }
-                } else {
-                    folderContainer.style.display = "none";
-                }
-            });
-        }
-    });
-</script>
-
-
-
+    </script>
+}

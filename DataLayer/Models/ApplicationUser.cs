@@ -25,6 +25,7 @@ namespace DataLayer.Models
         public DateTime? AddedOn { get; set; } = DateTime.Now;
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
+        public string? MobilePhone { get; set; }
 
 
         public List<WorkflowStepTemplate>? WorkflowSteps { get; set; }

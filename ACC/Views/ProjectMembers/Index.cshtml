@@ -46,7 +46,6 @@
                 <thead>
                     <tr>
                         <th>Name</th>
-                        <th>Status</th>
                         <th>Company</th>
                         <th>Role</th>
                         <th>Access Level</th>
@@ -63,7 +62,6 @@
                     {
                         <tr id="row-@member.Id" class="member-row" data-id="@member.Id">
                             <td>@member.Name</td>
-                            <td>@member.Status</td>
                             <td>@member.Company</td>
                             <td>@member.Position</td>
                             <td>@member.ProjectAccessLevel</td>
@@ -104,7 +102,7 @@
 
     </div>
 
-    <partial name="PartialViews/_AddProjectMembersPartialView" model="new InsertMemberVM()" />
+    <partial name="PartialViews/_AddProjectMembersPartialView" model="new InserProjecttMembersVM()" />
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
@@ -144,7 +142,6 @@
                     tbody.append(`
                         <tr id="row-${member.id}" class="member-row" data-id="${member.id}">
                             <td>${member.name}</td>
-                            <td>${member.status}</td>
                             <td>${member.company}</td>
                             <td>${member.role}</td>
                             <td>${accessLevels}</td>

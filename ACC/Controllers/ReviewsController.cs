@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using ACC.Services;
 using ACC.ViewModels.ReviewsVM;
@@ -41,11 +42,39 @@ namespace ACC.Controllers
             ReviewStepUsersService = reviewStepUsersService;
             UserManager = userManager;
         }
-        public async Task<IActionResult> Index(int id ,int page = 1, int pageSize = 4)
+        public async Task<IActionResult> Index(int id ,bool showArchived = false , bool reviewedByMe = false ,bool startedByMe = false , int page = 1, int pageSize = 4)
             
         {
             var CurrentUser = await UserManager.GetUserAsync(User);
-            var query = _reviewRepository.GetCurrentStepUserReviews(CurrentUser.Id , id);
+
+            var query = _reviewRepository.GetCurrentStepUserReviews(CurrentUser.Id, id)
+               .Where(r => r.FinalReviewStatus == FinalReviewStatus.Pending && r.InitiatorUserId != CurrentUser.Id).OrderByDescending(r => r.Id);
+
+            if (showArchived)
+            {
+                query = _reviewRepository.GetAll().Where(r =>r.ProjectId==id && r.FinalReviewStatus == FinalReviewStatus.Approved 
+                || r.FinalReviewStatus == FinalReviewStatus.Rejected && r.InitiatorUserId == CurrentUser.Id).OrderByDescending(r => r.Id);
+            }
+
+            else if (reviewedByMe)
+            {
+                var ReviewIdList = ReviewStepUsersService.GetAll()
+                       .Where(r => r.UserId == CurrentUser.Id && r.IsApproved != null)
+                       .Select(r =>r.ReviewId)
+                       .Distinct();
+
+                query = _reviewRepository.GetAll().Where(r => r.ProjectId == id && ReviewIdList.Contains(r.Id)).OrderByDescending(r=>r.Id).OrderByDescending(r => r.Id);
+
+
+            }
+            else if (startedByMe)
+            {
+                query = _reviewRepository.GetAll().Where(r => r.ProjectId == id 
+                && r.FinalReviewStatus != FinalReviewStatus.Approved && r.InitiatorUserId== CurrentUser.Id).OrderByDescending(r => r.Id);
+
+            }
+
+
 
             int totalRecords = query.Count();
 
@@ -73,11 +102,29 @@ namespace ACC.Controllers
             ViewBag.Id = id;    
             ViewBag.CreateReviewVM = new CreateReviewVM
             {
+                proId = id,
                 WorkflowTemplates = _workflowRepository.GetAll().ToList(),
                 FinalReviewStatuses = Enum.GetValues(typeof(FinalReviewStatus)).Cast<FinalReviewStatus>().ToList(),
                 AllFolders = FolderService.GetFolderWithDocumentTree(),
             };
             ViewBag.CurrentUserId = CurrentUser.Id;
+
+            if(reviewedByMe)
+            {
+                ViewBag.ReviewedByMe = reviewedByMe;
+            }
+            else if(startedByMe)
+            {
+                ViewBag.StartedByMe = startedByMe;
+
+            }
+            else
+            {
+                ViewBag.ReviewedByMe = reviewedByMe;
+                ViewBag.StartedByMe = startedByMe;
+                ViewBag.ShowArchived = showArchived;
+
+            }
         
 
             return View("Index", ReviewListModel);
@@ -91,6 +138,10 @@ namespace ACC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveReviewAsync(CreateReviewVM model)
         {
+            if (!ModelState.IsValid)
+            {
+                return View("CreateReview", model); 
+            }
 
             var Templatesteps = _workflowRepository.GetById(model.SelectedWorkflowId).Steps;
             var CurrentUser = await UserManager.GetUserAsync(User);
@@ -123,6 +174,7 @@ namespace ACC.Controllers
                         {
                             ReviewId = Review.Id,
                             DocumentId = id,
+                            Status = "Pending"
                         };
 
                         ReviewDocumentService.Insert(ReviewDocument);
@@ -182,7 +234,7 @@ namespace ACC.Controllers
                 }
 
 
-                return RedirectToAction("Index" , new { id = model.proId });
+                return RedirectToAction("Index" , new { id = model.proId , startedByMe = true });
             }
             catch (Exception ex)
             {
@@ -198,10 +250,48 @@ namespace ACC.Controllers
             Review ReviewFromDB = _reviewRepository.GetReviewById(Id);
 
             ReviewFromDB.CurrentStepId = _workflowRepository.GetById(ReviewFromDB.WorkflowTemplateId).Steps[0].Id;
+            ReviewFromDB.FinalReviewStatus = FinalReviewStatus.Pending;
 
             _reviewRepository.Save();
 
             return RedirectToAction("Index", new { id = ReviewFromDB.ProjectId });
+        }
+
+
+        [HttpPost]
+        public ActionResult Submit(List<DocumentUponAction> DocumentList, int ReviewId)
+        {
+            Review ReviewFromDB = _reviewRepository.GetById(ReviewId);
+            foreach (var doc in DocumentList)
+            {
+                var reviewDocument = ReviewDocumentService.GetAll().FirstOrDefault(i => i.ReviewId == ReviewId && i.DocumentId == doc.Id);
+                reviewDocument.Status = doc.State;
+                ReviewDocumentService.Update(reviewDocument);
+                ReviewDocumentService.Save();
+            }
+
+            foreach (var doc in DocumentList)
+            {
+                if (doc.State == "Pending")
+                {
+                    TempData["Error"] = "Some documents are still pending!";
+                    return RedirectToAction("Details", new { id = ReviewId });
+
+                }
+            }
+
+            foreach (var doc in DocumentList)
+            {
+                if (doc.State == "Rejected")
+                {
+                    return RedirectToAction("Reject", new { Id = ReviewId });
+                }
+            }
+
+
+
+            return RedirectToAction("Approve", new { Id = ReviewId });
+
         }
 
         public async Task<IActionResult> Approve(int Id)
@@ -219,6 +309,16 @@ namespace ACC.Controllers
             ReviewStepUsersService.Get(CurrentUser.Id, CurrntStep.Id , ReviewFromDB.Id).IsApproved = true;
             ReviewStepUsersService.Save();
 
+            var ReviewDocs = ReviewDocumentService.GetAll().Where(r => r.ReviewId == Id);
+            foreach(var doc in ReviewDocs)
+            {
+                
+                    doc.Status = "Rejected";
+               
+                doc.Status = "Pending";
+                ReviewDocumentService.Update(doc);
+            }
+            ReviewDocumentService.Save();
             bool Advance = true;
 
             
@@ -274,6 +374,13 @@ namespace ACC.Controllers
                 }
                 else 
                 {
+                    foreach (var doc in ReviewDocs)
+                    {
+                        
+                        doc.Status = "Approved";
+                        ReviewDocumentService.Update(doc);
+                    }
+                    ReviewDocumentService.Save();
 
                     var workflow = _workflowRepository.GetById(ReviewFromDB.WorkflowTemplateId);
                     bool copy = workflow.CopyApprovedFiles;
@@ -376,44 +483,118 @@ namespace ACC.Controllers
 
         public async Task<IActionResult> Details(int id)
         {
-
             var CurrentUser = await UserManager.GetUserAsync(User);
+
             var review = _reviewRepository.GetReviewById(id);
 
             if (review == null)
                 return NotFound();
 
-            var DocumentsListVM = review.ReviewDocuments.Select(rd => new DocumentUponAction
+            var reviewDocs = ReviewDocumentService.GetAll().Where(r => r.ReviewId == id);
+
+            foreach(var doc in reviewDocs)
+            {
+                var rejectedDoc = ReviewDocumentService.WasDocRejectedByThisUser(CurrentUser.Id, doc.ReviewId, doc.DocumentId);
+                if (rejectedDoc)
+                {
+                    doc.Status = "Rejected";
+                    ReviewDocumentService.Update(doc);
+                }
+
+            }
+            ReviewDocumentService.Save();
+
+            var DocumentsListVM = ReviewDocumentService.GetAll().Where(r=>r.ReviewId==id).Select(rd => new DocumentUponAction
             {
                 Id = rd.Document.Id,
                 Name = rd.Document.Name,
+                State = rd.Status
             }).ToList();
 
             ViewBag.ReviewName = review.Name;
             ViewBag.ReviewId = review.Id;
             ViewBag.CurrentUserId = CurrentUser.Id;
             ViewBag.Initiator = review.InitiatorUserId;
-            return View("Details" , DocumentsListVM);
-        }
-
-        [HttpPost]
-        public ActionResult Submit(List<DocumentUponAction> DocumentList , int ReviewId)
-        {
-            Review ReviewFromDB = _reviewRepository.GetById(ReviewId);
-
-            foreach(var doc in DocumentList)
+            
+         
+             if (CurrentUser.Id != review.InitiatorUserId)
             {
-                if( doc.IsApproved == false)
-                {
-                    return RedirectToAction("Reject" , new { Id = ReviewId });
-                }
+                ViewBag.CurrentStepOrder =  review.CurrentStep.StepOrder;
             }
 
 
-
-            return RedirectToAction("Approve" , new { Id = ReviewId });
-
+            return View("Details" , DocumentsListVM);
         }
+
+        public async Task<IActionResult> DocumentComments(int documentId , int reviewId , int currentStepOrder)
+        {
+
+            var comments = ReviewDocumentService.GetAllComments()
+                .Where(c => c.DocumentId == documentId && c.ReviewId==reviewId)  
+                .Select(c=>new CommentsVM
+                {
+                    Comment = c.Comment,
+                    ReviewerName = c.Reviewer.UserName,
+                    StepOrder = c.StepOrder,
+                    CreatedAt = c.CreatedAt.ToString()
+
+                }).ToList();
+
+            var review = _reviewRepository.GetReviewById(reviewId);
+
+            ViewBag.ReviewId = review.Id;
+            var CurrentUser = await UserManager.GetUserAsync(User);
+            ViewBag.Initiator = review.InitiatorUserId;
+            ViewBag.CurrentUserId = CurrentUser.Id;
+
+            ViewBag.DocumentId = documentId;
+            ViewBag.StepOrder = currentStepOrder;
+            return PartialView("PartialViews/_CommentsPartialView", comments);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddComment(int documentId, string comment, int reviewId, int stepOrder)
+        {
+            var user = await UserManager.GetUserAsync(User);
+
+            var reviewDocComment = new ReviewDocumentComment
+            {
+                DocumentId = documentId,
+                ReviewerId = user.Id,
+                ReviewId = reviewId,
+                Comment = comment,
+                StepOrder = stepOrder
+            };
+
+            ReviewDocumentService.InsertComment(reviewDocComment);
+            ReviewDocumentService.Save();
+
+            var comments = ReviewDocumentService.GetAllComments()
+                .Where(c => c.DocumentId == documentId && c.ReviewId == reviewId)
+                .Select(c => new CommentsVM
+                {
+                    Comment = c.Comment,
+                    ReviewerName = c.Reviewer.UserName,
+                    StepOrder = c.StepOrder,
+                    CreatedAt = c.CreatedAt.ToString()
+                }).ToList();
+
+            var CurrentUser = await UserManager.GetUserAsync(User);
+            ViewBag.Initiator = _reviewRepository.GetById(reviewId).InitiatorUserId;
+            ViewBag.CurrentUserId = CurrentUser.Id;
+
+            return PartialView("PartialViews/_CommentsPartialView", comments);
+        }
+
+        [AcceptVerbs("Get", "Post")]
+        public IActionResult VerifyUniqueReviewName(string name, int proId)
+        {
+            var exists = _reviewRepository.GetAll()
+                .Any(r => r.Name.ToLower() == name.ToLower() && r.ProjectId == proId);
+            return Json(!exists);
+        }
+
+
 
 
 

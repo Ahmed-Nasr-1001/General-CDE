@@ -12,11 +12,14 @@
             </div>
             <div class="modal-body">
                 <form asp-controller="Reviews" asp-action="SaveReview" method="post">
-                    <input type="hidden" name="ProId" value="@ViewBag.Id" />
+                    <input asp-for="proId" type="hidden" />
+
 
                     <div class="form-group">
                         <label asp-for="Name"></label>
                         <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+
                     </div>
 
                     <div class="form-group">
@@ -24,6 +27,8 @@
                         <select asp-for="SelectedWorkflowId" asp-items="@(new SelectList(Model.WorkflowTemplates, "Id", "Name"))" class="form-control">
                             <option value="">-- Select Workflow --</option>
                         </select>
+                        <span asp-validation-for="SelectedWorkflowId" class="text-danger"></span>
+
                     </div>
 
                     <div class="form-group">

@@ -59,7 +59,6 @@ namespace ACC.Controllers
             {
                 Id = m.Id,
                 Name = m.UserName,
-                Status = m.Status,
                 Company = m.Company?.Name ?? "No Company",
                 GlobalAccessLevel = _userRoleService.GetGlobalAccessLevel(m.Id).Name,
                 AddedOn = m.AddedOn
@@ -83,24 +82,24 @@ namespace ACC.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> InsertMemberAsync(InsertMemberVM memberFromReq)
+        public async Task<IActionResult> InsertMember(InsertMemberVM memberFromReq)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                ApplicationUser applicationUser = await _userRoleService.GetUserWithGAL(memberFromReq.Email.Split("@")[0]);
-
-                if (applicationUser != null)
-                {
-                    TempData["ErrorMessage"] = "Member already exists!";
-                    return PartialView("PartialViews/_AddMemberPartialView", memberFromReq);
-                }
+                ViewBag.Companies = _companyRepository.GetAll();
+                ViewBag.GlobalAccessLevelsList = _userRoleService.AllGlobalAccessLevels();
+                return PartialView("PartialViews/_AddMemberPartialView", memberFromReq);
+            }
+           
+                
 
                 var user = new ApplicationUser
                 {
-                    UserName = memberFromReq.Email.Split("@")[0],
-                    Email = memberFromReq.Email,
+                    FirstName = memberFromReq.FirstName,
+                    LastName = memberFromReq.LastName,
+                    MobilePhone = memberFromReq.MobilePhone,
+                    UserName = memberFromReq.Email,
                     CompanyId = memberFromReq.CompanyId,
-                    Status = memberFromReq.Status
                 };
 
                
@@ -123,16 +122,20 @@ namespace ACC.Controllers
                     _userRoleService.Save();
 
                     TempData["SuccessMessage"] = "Member added successfully!";
-                    return Json(new { success = true });
-                }
+                    return RedirectToAction("Index", "Member");
 
-                foreach (var error in result.Errors)
+            }
+
+            foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError("", error.Description);
                 }
-            }
+            
 
-            TempData["ErrorMessage"] = "Failed to add member!";
+
+
+            ViewBag.Companies = _companyRepository.GetAll();
+            ViewBag.GlobalAccessLevelsList = _userRoleService.AllGlobalAccessLevels();
             return PartialView("PartialViews/_AddMemberPartialView", memberFromReq);
         }
 
@@ -169,7 +172,6 @@ namespace ACC.Controllers
                 {
                     userName = member.UserName,
                     email = member.Email,
-                    status = member.Status,
                     company = member.Company?.Name,
                     GlobalAccessLevelId = GlobalAccessLevel.Id,
                 });
@@ -190,8 +192,7 @@ namespace ACC.Controllers
                 if (mmbr == null)
                     return NotFound();
 
-                mmbr.UserName = member.email.Split("@")[0];
-                mmbr.Email = member.email;
+                mmbr.UserName = member.email;
                 mmbr.CompanyId = member.companyId;
 
                
@@ -250,9 +251,11 @@ namespace ACC.Controllers
 
             var insertMemberVM = new InsertMemberVM
             {
-                Email = member.Email,
+                FirstName = member.FirstName,
+                LastName = member.LastName,
+                Email = member.UserName,
                 CompanyId = member.CompanyId,
-                Status = member.Status,
+                MobilePhone = member.MobilePhone,
                 currentCompany = _companyRepository.GetById(member.CompanyId ?? 0)?.Name,
                 GlobalAccessLevelId = _userRoleService.GetGlobalAccessLevel(id).Name
 
@@ -263,6 +266,9 @@ namespace ACC.Controllers
 
             return PartialView("PartialViews/_UpdateMemberPartialView", insertMemberVM);
         }
+
+     
+
 
     }
 }

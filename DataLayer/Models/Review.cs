@@ -25,6 +25,9 @@ namespace DataLayer.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
+        public List<ReviewDocumentComment>? Comments { get; set; }
+
+
         public List<ReviewDocument> ReviewDocuments { get; set; } = new List<ReviewDocument>();
         public List<ReviewFolder> ReviewFolders { get; set; } = new List<ReviewFolder>();
 
