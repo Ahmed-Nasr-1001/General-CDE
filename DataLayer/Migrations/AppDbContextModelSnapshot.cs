@@ -484,6 +484,58 @@ namespace DataLayer.Migrations
                     b.ToTable("IssueReviwers");
                 });
 
+            modelBuilder.Entity("DataLayer.Models.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ActionUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RecipientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("ReviewId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SenderId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecipientId");
+
+                    b.HasIndex("ReviewId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("Notifications");
+                });
+
             modelBuilder.Entity("DataLayer.Models.Project", b =>
                 {
                     b.Property<int>("Id")
@@ -1141,6 +1193,31 @@ namespace DataLayer.Migrations
                     b.Navigation("Reviewer");
                 });
 
+            modelBuilder.Entity("DataLayer.Models.Notification", b =>
+                {
+                    b.HasOne("DataLayer.Models.ApplicationUser", "Recipient")
+                        .WithMany("ReceivedNotifications")
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("DataLayer.Models.Review", "Review")
+                        .WithMany()
+                        .HasForeignKey("ReviewId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("DataLayer.Models.ApplicationUser", "Sender")
+                        .WithMany("SentNotifications")
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Recipient");
+
+                    b.Navigation("Review");
+
+                    b.Navigation("Sender");
+                });
+
             modelBuilder.Entity("DataLayer.Models.ProjectActivities", b =>
                 {
                     b.HasOne("DataLayer.Models.Project", "project")
@@ -1426,7 +1503,11 @@ namespace DataLayer.Migrations
 
                     b.Navigation("Projects");
 
+                    b.Navigation("ReceivedNotifications");
+
                     b.Navigation("ReviewStepUsers");
+
+                    b.Navigation("SentNotifications");
 
                     b.Navigation("UserRoles");
 

@@ -17,6 +17,7 @@
       width: 100%;
       overflow: hidden;
       background: #000;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     }
 
     #container {
@@ -26,43 +27,49 @@
       width: 100vw;
       height: 100vh;
       z-index: 0;
-      /* background layer */
     }
 
     .toolsBar {
       position: absolute;
-      top: 1rem;
+      top: 1.5rem;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
       flex-direction: row;
-      padding: 0.5rem 1rem;
-      border-radius: 10px;
+      padding: 0.75rem 1.25rem;
+      border-radius: 12px;
       z-index: 10;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      gap: 0.5rem;
     }
 
     .bar_btn {
       position: relative;
-      padding: 5px;
+      padding: 8px;
       justify-content: center;
       border: none;
       border-radius: 8px;
       align-items: center;
-      width: 35px;
-      height: 35px;
-      background-color: beige;
-      margin: 0 6px;
-      box-shadow: 0 4px 15px rgba(212, 208, 208, 0.3);
+      width: 40px;
+      height: 40px;
+      background-color: rgba(255, 255, 255, 0.9);
+      margin: 0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       cursor: pointer;
+      transition: all 0.2s ease;
     }
 
     .bar_btn:hover {
-      background-color: gray;
+      background-color: #f0f0f0;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .bar_btn.active {
-      background-color: red;
+      background-color: #e74c3c;
+      color: white;
     }
 
     .tooltip {
@@ -74,81 +81,103 @@
       visibility: hidden;
       width: max-content;
       max-width: 200px;
-      background-color: #333;
+      background-color: rgba(51, 51, 51, 0.95);
       color: #fff;
       text-align: center;
       border-radius: 6px;
-      padding: 5px 8px;
+      padding: 8px 12px;
       position: absolute;
       z-index: 20;
-      bottom: -2.2rem;
+      bottom: -2.5rem;
       left: 50%;
       transform: translateX(-50%);
       opacity: 0;
-      transition: opacity 0.3s;
-      font-size: 12px;
+      transition: all 0.3s ease;
+      font-size: 13px;
       white-space: pre-wrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
     .tooltip:hover .tooltiptext {
       visibility: visible;
       opacity: 1;
+      bottom: -2.8rem;
+    }
+
+    /* Panel Styles */
+    bim-panel {
+      background: rgba(255, 255, 255, 0.95) !important;
+      border-radius: 12px !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+      backdrop-filter: blur(10px);
+    }
+
+    bim-panel-section {
+      padding: 1rem !important;
+    }
+
+    bim-button {
+      transition: all 0.2s ease !important;
+    }
+
+    bim-button:hover {
+      transform: translateY(-1px) !important;
     }
   </style>
   </head>
 
   <body>
   <div id="container">
-    <div id="toolsBar" class="toolsBar">
-      <div class="tooltip">
-        <button id="loadBtn" class="bar_btn">
-          <iconify-icon icon="iconoir:upload" width="24" height="24"></iconify-icon>
-        </button>
-        <span class="tooltiptext">Load IFC File</span>
-      </div>
+      <div id="toolsBar" class="toolsBar">
+          <div class="tooltip">
+              <button id="ThemeToggleBtn" class="bar_btn">
+                  <iconify-icon icon="solar:moon-bold" width="24" height="24"></iconify-icon>
+              </button>
+              <span class="tooltiptext">Toggle Light/Dark Theme</span>
+          </div>
 
-      <div class="tooltip">
-        <button id="SectionBtn" class="bar_btn">
-          <iconify-icon icon="icon-park-solid:cutting-one" width="24" height="24"></iconify-icon>
-        </button>
-        <span class="tooltiptext">Toggle Section Cut</span>
-      </div>
+          <div class="tooltip">
+              <button id="SectionBtn" class="bar_btn">
+                  <iconify-icon icon="icon-park-solid:cutting-one" width="24" height="24"></iconify-icon>
+              </button>
+              <span class="tooltiptext">Toggle Section Cut</span>
+          </div>
 
-      <div class="tooltip">
-        <button id="LengthBtn" class="bar_btn">
-          <iconify-icon icon="lets-icons:line-in" width="24" height="24"></iconify-icon>
-        </button>
-        <span class="tooltiptext">Measure Lengths</span>
-      </div>
+          <div class="tooltip">
+              <button id="LengthBtn" class="bar_btn">
+                  <iconify-icon icon="lets-icons:line-in" width="24" height="24"></iconify-icon>
+              </button>
+              <span class="tooltiptext">Measure Lengths</span>
+          </div>
 
-      <div class="tooltip">
-        <button id="AreaBtn" class="bar_btn">
-          <iconify-icon icon="material-symbols:area-chart-rounded" width="24" height="24"></iconify-icon>
-        </button>
-        <span class="tooltiptext">Measure Area (Double Click + Right Click)</span>
-      </div>
+          <div class="tooltip">
+              <button id="AreaBtn" class="bar_btn">
+                  <iconify-icon icon="material-symbols:area-chart-rounded" width="24" height="24"></iconify-icon>
+              </button>
+              <span class="tooltiptext">Measure Area (Double Click + Right Click)</span>
+          </div>
 
-      <div class="tooltip">
-        <button id="EdgeBtn" class="bar_btn">
-          <iconify-icon icon="ph:ruler-bold" width="24" height="24"></iconify-icon>
-        </button>
-        <span class="tooltiptext">Edge Measurement (Double Click)</span>
-      </div>
+          <div class="tooltip">
+              <button id="EdgeBtn" class="bar_btn">
+                  <iconify-icon icon="ph:ruler-bold" width="24" height="24"></iconify-icon>
+              </button>
+              <span class="tooltiptext">Edge Measurement (Double Click)</span>
+          </div>
 
-      <div class="tooltip">
-        <button id="FaceBtn" class="bar_btn">
-          <iconify-icon icon="mdi:vector-square" width="24" height="24"></iconify-icon>
-        </button>
-        <span class="tooltiptext">Face Measurement (Double Click)</span>
-      </div>
+          <div class="tooltip">
+              <button id="FaceBtn" class="bar_btn">
+                  <iconify-icon icon="mdi:vector-square" width="24" height="24"></iconify-icon>
+              </button>
+              <span class="tooltiptext">Face Measurement (Double Click)</span>
+          </div>
 
-      <div class="tooltip">
-        <button id="VolumeBtn" class="bar_btn">
-          <iconify-icon icon="mdi:cube-outline" width="24" height="24"></iconify-icon>
-        </button>
-        <span class="tooltiptext">Volume Measurement (Select Columns)</span>
+          <div class="tooltip">
+              <button id="VolumeBtn" class="bar_btn">
+                  <iconify-icon icon="mdi:cube-outline" width="24" height="24"></iconify-icon>
+              </button>
+              <span class="tooltiptext">Volume Measurement (Select Columns)</span>
+          </div>
       </div>
-    </div>
   </div>
 
     <script type="module" src="/src/index.js"></script>

@@ -19,5 +19,7 @@ namespace BusinessLogic.Repository.RepositoryInterfaces
         List<Folder> GetFolders(List<int> foldersIds);
 
 
+        //For Notification 
+        Review GetReviewByIdForNotification(int Id);
     }
 }

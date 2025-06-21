@@ -16,6 +16,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.Xml;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static NuGet.Packaging.PackagingConstants;
 
@@ -72,7 +73,7 @@ namespace ACC.Controllers.ProjectDetailsController
                     await LoadSubFoldersAsync(folder, _folderRepository);
                 }
 
-                ViewBag.ProjectId = Id;
+                ViewBag.Id = Id;
                 id = Id; // Ensure 'id' is defined; consider clarifying its purpose
                 ViewBag.AllFolders = _folderRepository.GetAll();
 
@@ -169,7 +170,7 @@ namespace ACC.Controllers.ProjectDetailsController
                     return NotFound("Folder not found or you don't have access.");
                 }
 
-                ViewBag.ProjectId = projectId;
+                ViewBag.Id = projectId;
                 return View(folder);
             }
             catch (Exception ex)
@@ -192,7 +193,7 @@ namespace ACC.Controllers.ProjectDetailsController
             if (folder == null)
                 return NotFound();
 
-            ViewBag.ProjectId = id;
+            ViewBag.Id = id;
 
             return View(folder);
         }
@@ -234,7 +235,7 @@ namespace ACC.Controllers.ProjectDetailsController
         [HttpGet]
         public IActionResult CreateRoot(int projectId)
         {
-            ViewBag.ProjectId = projectId;
+            ViewBag.Id = projectId;
             return View();
         }
 
@@ -247,7 +248,7 @@ namespace ACC.Controllers.ProjectDetailsController
                 if (string.IsNullOrWhiteSpace(folderName))
                 {
                     ModelState.AddModelError("FolderName", "Folder name is required.");
-                    ViewBag.ProjectId = projectId;
+                    ViewBag.Id = projectId;
                     return View();
                 }
 
@@ -277,7 +278,7 @@ namespace ACC.Controllers.ProjectDetailsController
             {
                 // Log the exception
                 TempData["Error"] = "An error occurred while creating the root folder.";
-                ViewBag.ProjectId = projectId;
+                ViewBag.Id = projectId;
                 return View();
             }
         }
@@ -341,7 +342,7 @@ namespace ACC.Controllers.ProjectDetailsController
         public IActionResult Upload(int folderId, int projectId)
         {
             ViewBag.FolderId = folderId;
-            ViewBag.ProjectId = projectId;
+            ViewBag.Id = projectId;
             return View();
         }
 
@@ -349,6 +350,10 @@ namespace ACC.Controllers.ProjectDetailsController
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Upload(int folderId, int projectId, IFormFile file)
         {
+            if (projectId == 0)
+            {
+                projectId = id;
+            }
             try
             {
                 if (file == null || file.Length == 0)
@@ -367,7 +372,7 @@ namespace ACC.Controllers.ProjectDetailsController
                     return View();
                 }
 
-                var allowedExtensions = new[] { ".pdf", ".docx", ".jpg", ".jepg", ".png", ".dwg", ".ifc", ".rvt", ".pptx" };
+                var allowedExtensions = new[] { ".pdf", ".docx", ".jpg", ".jpeg", ".png", ".dwg", ".ifc", ".rvt", ".pptx" };
                 var extension = Path.GetExtension(file.FileName).ToLower();
                 if (!allowedExtensions.Contains(extension))
                 {
@@ -387,6 +392,11 @@ namespace ACC.Controllers.ProjectDetailsController
 
                 var uploadFolder = Path.Combine(_env.WebRootPath, "uploads", projectId.ToString(), folderId.ToString());
                 Directory.CreateDirectory(uploadFolder);
+
+                // ISO 19650 file name pattern
+                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file.FileName);
+                
+
 
                 var filePath = Path.Combine(uploadFolder, file.FileName);
 
@@ -433,7 +443,7 @@ namespace ACC.Controllers.ProjectDetailsController
                 // Log the exception
                 TempData["Error"] = "An error occurred while uploading the file.";
                 ViewBag.FolderId = folderId;
-                ViewBag.ProjectId = projectId;
+                ViewBag.Id = projectId;
                 return View();
             }
         }
@@ -489,7 +499,7 @@ namespace ACC.Controllers.ProjectDetailsController
                     return NotFound("Document not found.");
                 }
 
-                ViewBag.ProjectId = projectId;
+                ViewBag.Id = projectId;
                 return View(document);
             }
             catch (Exception ex)
@@ -576,7 +586,7 @@ namespace ACC.Controllers.ProjectDetailsController
             }
 
             var latestVersion = document.Versions.First();
-            var filePath = Path.Combine(_env.WebRootPath, "uploads", document.ProjectId.ToString(), document.FolderId.ToString(), latestVersion.Document.Name + latestVersion.Document.FileType);
+            var filePath = latestVersion.FilePath;
 
             if (!System.IO.File.Exists(filePath))
             {
@@ -589,6 +599,7 @@ namespace ACC.Controllers.ProjectDetailsController
 
                 return Ok(new
                 {
+                    projectId = document.ProjectId,
                     fileUrl = $"/{relaPath}", // e.g., /copied-ifc-files/filename.ifc
                     fileType = document.FileType.ToLower()
                 });
@@ -756,9 +767,6 @@ namespace ACC.Controllers.ProjectDetailsController
 
             return BadRequest("Unsupported file type.");
         }
-
-
-
 
     }
 

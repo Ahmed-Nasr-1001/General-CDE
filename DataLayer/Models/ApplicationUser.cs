@@ -42,5 +42,10 @@ namespace DataLayer.Models
 
 
 
+        //For Notifications
+        public List<Notification>? ReceivedNotifications { get; set; } = new List<Notification>();
+        public List<Notification>? SentNotifications { get; set; } = new List<Notification>();
+
+
     }
 }

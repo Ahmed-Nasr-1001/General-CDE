@@ -30,6 +30,24 @@ namespace BusinessLogic.Repository.RepositoryClasses
             return Context.WorkflowTemplates.Include(w=>w.Steps).FirstOrDefault(w => w.Id == Id);    
         }
 
-      
+
+        //For notification 
+        public WorkflowStepTemplate GetFirstStepByTemplateId(int templateId)
+        {
+            return Context.WorkflowStepTemplates
+                .Where(s => s.WorkflowTemplateId == templateId)
+                .OrderBy(s => s.StepOrder)
+                .FirstOrDefault();
+        }
+
+        public int? GetFirstStepIdByTemplateId(int templateId)
+        {
+            var firstStep = Context.WorkflowStepTemplates
+                .Where(s => s.WorkflowTemplateId == templateId)
+                .OrderBy(s => s.StepOrder)
+                .FirstOrDefault();
+
+            return firstStep?.Id;
+        }
     }
 }

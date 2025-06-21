@@ -14,12 +14,13 @@
         "vite-plugin-static-copy": "^3.0.0"
     },
     "dependencies": {
-        "@thatopen/components": "^2.4.4",
-        "@thatopen/components-front": "^2.4.4",
-        "@thatopen/fragments": "^2.4.0",
-        "@thatopen/ui": "^2.4.1",
-        "@types/three": "^0.173.0",
-        "three": "^0.160.1",
+        "@thatopen/components": "2.4.4",
+        "@thatopen/components-front": "2.4.4",
+        "@thatopen/fragments": "2.4.0",
+        "@thatopen/ui": "2.4.1",
+        "@thatopen/ui-obc": "2.4.4",
+        "three": "0.152.0",
+        "@types/three": "^0.152.0",
         "web-ifc": "^0.0.66"
     }
 }

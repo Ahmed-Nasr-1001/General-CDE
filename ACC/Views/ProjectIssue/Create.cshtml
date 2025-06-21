@@ -6,6 +6,9 @@
 }
 
 <h2>Create Project Issue</h2>
+<button class="btn btn-outline-dark rounded px-3 py-2 mb-3" onclick="window.history.back();">
+    ⬅ Back to Previous Page
+</button>
 
 <form asp-action="Create" method="post" enctype="multipart/form-data">
     <div class="form-group">
@@ -53,5 +56,24 @@
             }
         </select>
     </div>
+    @if (!string.IsNullOrEmpty(Model.ScreenshotPath))
+    {
+        <div>
+            <label>Snapshot:</label>
+            <img src="@Model.ScreenshotPath" alt="Snapshot" class="img-fluid rounded border" width="200" height="200" />
+            <input type="hidden" name="ScreenshotPath" value="@Model.ScreenshotPath" />
+        </div>
+    }
+    @if (!string.IsNullOrEmpty(Model.ScreenshotPath))
+    {
+        <div class="mb-3">
+            @* <a href="/IfcViewer/Index?fileId=@Model.FileId&projectId=@Model.ProjectId" class="btn btn-outline-secondary"> *@
+            @*     🔁 Retake Snapshot *@
+            @* </a> *@
+          
+
+        </div>
+    }
+
     <button type="submit" class="btn btn-primary">Create</button>
 </form>

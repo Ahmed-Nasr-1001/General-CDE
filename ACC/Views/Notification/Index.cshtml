@@ -1,0 +1,203 @@
+﻿@model ACC.ViewModels.NotificationVM.NotificationListVM
+@{
+    ViewData["Title"] = "Notifications";
+    Layout = "_ProjectLayout";
+}
+
+<div class="container-fluid p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Notifications</h2>
+        @if (Model.UnreadCount > 0)
+        {
+            <button class="btn btn-outline-primary mark-all-read-btn">
+                <i class="bi bi-check-all"></i> Mark All as Read (@Model.UnreadCount)
+            </button>
+        }
+    </div>
+
+    @if (Model.Notifications.Any())
+    {
+        <div class="notification-list">
+            @foreach (var notification in Model.Notifications)
+            {
+                <div class="notification-item @(notification.Status == DataLayer.Models.Enums.Notification.NotificationStatus.Unread ? "unread" : "read")"
+                     data-id="@notification.Id">
+                    <div class="notification-content">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="notification-header">
+                                <h6 class="notification-title mb-1">
+                                    @notification.Title
+                                    @if (notification.Status == DataLayer.Models.Enums.Notification.NotificationStatus.Unread)
+                                    {
+                                        <span class="badge bg-primary ms-2">New</span>
+                                    }
+                                </h6>
+                                <small class="text-muted">
+                                    @notification.TypeDisplayName • @notification.FormattedDate
+                                    @if (!string.IsNullOrEmpty(notification.SenderName))
+                                    {
+                                        <span> • from @notification.SenderName</span>
+                                    }
+                                </small>
+                            </div>
+                            <div class="notification-actions">
+                                @if (notification.Status == DataLayer.
+                                Models.Enums.Notification.NotificationStatus.Unread)
+                                {
+                                    <button class="btn btn-sm btn-outline-secondary mark-as-read-btn" data-id="@notification.Id" title="Mark as read">
+                                        <i class="bi bi-check"></i>
+                                    </button>
+                                }
+                                <button class="btn btn-sm btn-outline-danger delete-notification-btn" data-id="@notification.Id" title="Delete notification">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="notification-message mb-2">@notification.Message</p>
+                        @if (!string.IsNullOrEmpty(notification.ActionUrl))
+                        {
+                            <a href="@notification.ActionUrl" class="btn btn-sm btn-primary">View Details</a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-bell-slash display-1 text-muted"></i>
+            <h4 class="text-muted mt-3">No notifications yet</h4>
+            <p class="text-muted">You'll see notifications here when they arrive.</p>
+        </div>
+    }
+</div>
+
+<style>
+    .notification-item {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        transition: all 0.2s ease;
+    }
+
+        .notification-item.unread {
+            background-color: #f8f9ff;
+            border-left: 4px solid #007bff;
+        }
+
+        .notification-item.read {
+            background-color: #f8f9fa;
+            border-left: 4px solid #e0e0e0;
+        }
+
+    .notification-content {
+        padding: 16px;
+    }
+
+    .notification-title {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .notification-message {
+        color: #6c757d;
+    }
+
+    .notification-item:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .mark-as-read-btn:disabled,
+    .mark-all-read-btn:disabled,
+    .delete-notification-btn:disabled {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    .notification-actions {
+        display: flex;
+        gap: 5px;
+    }
+
+        .notification-actions button {
+            transition: opacity 0.2s;
+        }
+
+            .notification-actions button:hover {
+                opacity: 0.8;
+            }
+</style>
+
+<script>
+    $(document).ready(function() {
+        // Mark single notification as read
+        $(document).on("click", ".mark-as-read-btn", function() {
+            const notificationId = $(this).data("id");
+            const notificationElement = $(this).closest(".notification-item");
+
+            $.ajax({
+                url: "@Url.Action("MarkAsRead", "Notification")",
+                type: "POST",
+                data: { id: notificationId },
+                success: function() {
+                    notificationElement.removeClass("unread").addClass("read");
+                    notificationElement.find(".badge, .mark-as-read-btn").remove();
+                    updateNotificationCount();
+                    // location.reload(); // Uncomment if you want to reload after marking
+                },
+                error: function(xhr) {
+                    console.error("Error:", xhr.responseText);
+                }
+            });
+        });
+
+        // Delete notification
+        $(document).on("click", ".delete-notification-btn", function() {
+            if (confirm("Are you sure you want to delete this notification?")) {
+                const notificationId = $(this).data("id");
+                const notificationElement = $(this).closest(".notification-item");
+
+                $.ajax({
+                    url: "@Url.Action("DeleteNotification", "Notification")",
+                    type: "POST",
+                    data: { id: notificationId },
+                    success: function() {
+                        notificationElement.slideUp(200, function() { $(this).remove(); });
+                        updateNotificationCount();
+                    },
+                    error: function(xhr) {
+                        console.error("Error:", xhr.responseText);
+                    }
+                });
+            }
+        });
+
+        // Mark all notifications as read
+        $(".mark-all-read-btn").click(function() {
+            $.ajax({
+                url: "@Url.Action("MarkAllAsRead", "Notification")",
+                type: "POST",
+                success: function() {
+                    location.reload();
+                },
+                error: function(xhr) {
+                    console.error("Error:", xhr.responseText);
+                }
+            });
+        });
+
+        function updateNotificationCount() {
+            $.get("@Url.Action("GetUnreadCount", "Notification")", function(data) {
+                $("#notification-count").text(data.unreadCount || 0);
+                const markAllBtn = $(".mark-all-read-btn");
+                if (data.unreadCount > 0) {
+                    markAllBtn.html('<i class="bi bi-check-all"></i> Mark All as Read (' + data.unreadCount + ')');
+                    markAllBtn.show();
+                } else {
+                    markAllBtn.hide();
+                }
+            });
+        }
+    });
+</script>

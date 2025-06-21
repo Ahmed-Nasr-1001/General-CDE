@@ -1,4 +1,5 @@
 ﻿using ACC.Services;
+using Aspose.CAD.FileFormats.Collada.FileParser.Elements;
 using BusinessLogic.Repository.RepositoryClasses;
 using BusinessLogic.Repository.RepositoryInterfaces;
 using BusinessLogic.Services;
@@ -53,6 +54,7 @@ namespace ACC
                    .AddDefaultTokenProviders();
 
 
+           
 
 
             #region Dependency injection
@@ -82,7 +84,8 @@ namespace ACC
             builder.Services.AddScoped<IFolderRepository, FolderRepository>();
             builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
             builder.Services.AddScoped<IDocumentVersionRepository, DocumentVersionRepository>();
-
+            builder.Services.AddScoped<IIssueCommentRepository, IssueCommentRepository>();
+            builder.Services.AddScoped<IIssueNotificationRepository, IssueNotificationRepository>();
 
 
             builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
@@ -95,7 +98,8 @@ namespace ACC
             builder.Services.AddScoped<ReviewStepUsersService>();
             builder.Services.AddScoped<IssueReviewersService>();
             builder.Services.AddScoped<UserRoleService>();
-
+            builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+            builder.Services.AddScoped<INotificationService, NotificationService>();
 
             #endregion
 

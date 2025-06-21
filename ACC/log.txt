@@ -1,0 +1,15 @@
+[6/17/2025 10:51:46 AM] Error: System.IO.IOException: The process cannot access the file 'C:\Users\ibrih\Source\Repos\ACC\ACC\wwwroot\converted\Arkan_Office_58e7a59affb049b4849967585b15ec3d.dxf' because it is being used by another process.
+   at System.IO.FileSystem.DeleteFile(String fullPath)
+   at ACC.Controllers.ProjectDetailsController.ProjectDocumentController.OpenFile(Int32 documentId) in C:\Users\ibrih\Source\Repos\ACC\ACC\Controllers\ProjectDetailsController\ProjectDocumentController.cs:line 628
+[20/06/2025 21:21:23] Error: System.ArgumentNullException: Value cannot be null. (Parameter 'path')
+   at System.ArgumentNullException.Throw(String paramName)
+   at System.ArgumentNullException.ThrowIfNull(Object argument, String paramName)
+   at System.ArgumentException.ThrowNullOrEmptyException(String argument, String paramName)
+   at System.IO.Directory.CreateDirectory(String path)
+   at ACC.Controllers.ProjectIssueController.OpenFile(Int32 documentId) in C:\AEC-ITI\ACC\ACC\Controllers\ProjectIssueController.cs:line 380
+[20/06/2025 21:25:38] Error: System.ArgumentNullException: Value cannot be null. (Parameter 'path')
+   at System.ArgumentNullException.Throw(String paramName)
+   at System.ArgumentNullException.ThrowIfNull(Object argument, String paramName)
+   at System.ArgumentException.ThrowNullOrEmptyException(String argument, String paramName)
+   at System.IO.Directory.CreateDirectory(String path)
+   at ACC.Controllers.ProjectIssueController.OpenFile(Int32 documentId) in C:\AEC-ITI\ACC\ACC\Controllers\ProjectIssueController.cs:line 380

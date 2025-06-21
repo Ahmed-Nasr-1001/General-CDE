@@ -15,7 +15,10 @@ namespace ACC.ViewModels
         public int ProjectId { get; set; }
         public IFormFile Attachment { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string? FilePath { get; set; }
 
+        public string? ScreenshotPath { get; set; }
+        public int? FileId { get; set; }
 
         public int? DocumentId { get; set; }
 

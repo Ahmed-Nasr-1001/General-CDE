@@ -186,6 +186,7 @@
                                     <button type="submit" asp-action="Delete" asp-controller="Review" asp-route-Id="@item.Id" class="btn btn-danger">Delete</button>
                                 </form>
                             </div>
+                            
                         </td>
 
                     </tr>
@@ -206,17 +207,36 @@
         </div>
 
 
-
-    </div>
-
-
-
-
     <!-- Create Review Modal -->
     <partial name="PartialViews/_CreateReviewPartialView" model="(CreateReviewVM)ViewBag.CreateReviewVM" />
 
 
-    
+    <!-- Bootstrap Modal for File Viewer -->
+<div class="modal fade" id="fileModal" tabindex="-1" aria-labelledby="fileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fileModalLabel">File Viewer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="fileViewer" style="width: 100%; height: 500px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Indicator -->
+<div id="loadingSpinner" class="d-none text-center my-3">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <p>Loading file...</p>
+</div>
+
+<!-- Error Message Container -->
+<div id="errorMessage" class="d-none alert alert-danger" role="alert"></div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
 

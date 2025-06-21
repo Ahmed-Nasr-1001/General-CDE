@@ -12,7 +12,9 @@ namespace BusinessLogic.Repository.RepositoryInterfaces
 
          List<WorkflowTemplate> GetAllWithSteps(int proId);
         WorkflowTemplate GetById(int Id);
-        
 
+        // for notification
+        WorkflowStepTemplate GetFirstStepByTemplateId(int templateId);
+        int? GetFirstStepIdByTemplateId(int templateId);
     }
 }

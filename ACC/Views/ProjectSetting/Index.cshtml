@@ -432,93 +432,89 @@
 			<partial name="ProjectSettingPartialView/_EditProjectSettingPartialView" />
 		</div>
 	</div>
-
-
-
-
-
 	<script>
-		$(document).ready(function () {
+				$(document).ready(function () {
 
-			
+					// Tabs navigation logic
+					$(".nav-link[data-target]").click(function (e) {
+			e.preventDefault();
 
-				// Remove 'active' from all nav links, then add it to the clicked one
-				$(".nav-link").removeClass("active");
-				$(this).addClass("active");
+			// Remove 'active' from all nav links, then add it to the clicked one
+			$(".nav-link[data-target]").removeClass("active");
+			$(this).addClass("active");
 
-				// Hide all data sections
-				$("#project-data, #locations-data").hide();
+			// Hide all sections
+			$("#project-data, #locations-data").hide();
 
-				// Show the corresponding section based on data-target
-				var targetId = $(this).data("target");
-				$("#" + targetId).show();
-			});
-
-			// (Optional) Show the project section by default
-			$("#project-data").show();
-			$("#locations-data").hide();
-
-			// Existing edit/cancel/save logic ...
-			$("#editDataModel").click(function () {
-				$("#display-data-class").hide();
-				$("#Edit-data-class").show();
-				$("#editDataModel").hide();
-				$("#cancelDataModel").show();
-				$("#saveDataModel").show();
-			});
-
-			$("#cancelDataModel").click(function () {
-				$("#editDataModel").show();
-				$("#display-data-class").show();
-				$("#Edit-data-class").hide();
-				$("#cancelDataModel").hide();
-				$("#saveDataModel").hide();
-			});
-
-			function showNotification(message, isError = false) {
-				$("#notification-message").text(message);
-				$("#custom-notification")
-					.removeClass("bg-success bg-danger")
-					.addClass(isError ? "bg-danger" : "bg-success")
-					.fadeIn(400)
-					.delay(5000)
-					.fadeOut(2000, function() {
-			$(this).css("display", "none"); // Ensure it's hidden
+			// Show the one associated with this tab
+			const targetId = $(this).data("target");
+			$("#" + targetId).show();
 		});
-			}
-		
-			$("#editProjectForm").submit(function (event) {
-				event.preventDefault();
-				$.ajax({
-					url: '@Url.Action("EditProject", "ProjectSetting")',
-					type: "POST",
-					data: $(this).serialize(),
-					headers: {
-						"X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content')
-					},
-					success: function (response) {
-						if (response.success) {
-							showNotification("Project successfully updated!");
-							setTimeout(function () {
-								$("#editDataModel").show();
-								$("#display-data-class").show();
-								$("#Edit-data-class").hide();
-								$("#cancelDataModel").hide();
-								$("#saveDataModel").hide();
-								location.reload();
-							}, 1000);
-						} else {
-							showNotification("Failed to update project: " +
-								(response.errors ? response.errors.join(", ") : "Validation failed"), true);
-						}
-					},
-					error: function (xhr, status, error) {
-						showNotification("An error occurred while updating the project", true);
-						console.error("AJAX Error:", error);
+
+
+					// (Optional) Show the project section by default
+					$("#project-data").show();
+					$("#locations-data").hide();
+
+					// Existing edit/cancel/save logic ...
+					$("#editDataModel").click(function () {
+						$("#display-data-class").hide();
+						$("#Edit-data-class").show();
+						$("#editDataModel").hide();
+						$("#cancelDataModel").show();
+						$("#saveDataModel").show();
+					});
+
+					$("#cancelDataModel").click(function () {
+						$("#editDataModel").show();
+						$("#display-data-class").show();
+						$("#Edit-data-class").hide();
+						$("#cancelDataModel").hide();
+						$("#saveDataModel").hide();
+					});
+
+					function showNotification(message, isError = false) {
+						$("#notification-message").text(message);
+						$("#custom-notification")
+							.removeClass("bg-success bg-danger")
+							.addClass(isError ? "bg-danger" : "bg-success")
+							.fadeIn(400)
+							.delay(5000)
+							.fadeOut(2000);
 					}
+
+					$("#editProjectForm").submit(function (event) {
+						event.preventDefault();
+						$.ajax({
+							url: '@Url.Action("EditProject", "ProjectSetting")',
+							type: "POST",
+							data: $(this).serialize(),
+							headers: {
+								"X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content')
+							},
+							success: function (response) {
+								if (response.success) {
+									showNotification("Project successfully updated!");
+									setTimeout(function () {
+										$("#editDataModel").show();
+										$("#display-data-class").show();
+										$("#Edit-data-class").hide();
+										$("#cancelDataModel").hide();
+										$("#saveDataModel").hide();
+										location.reload();
+									}, 1000);
+								} else {
+									showNotification("Failed to update project: " +
+										(response.errors ? response.errors.join(", ") : "Validation failed"), true);
+								}
+							},
+							error: function (xhr, status, error) {
+								showNotification("An error occurred while updating the project", true);
+								console.error("AJAX Error:", error);
+							}
+						});
+					});
 				});
-			});
-		});
 
 		function reverseGeocode(lat, lng) {
 			fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
@@ -630,7 +626,7 @@
 				e.preventDefault();
 
 				$.ajax({
-					url: '@Url.Action("UpdateProjectLocation", "ProjectSetting")',
+					url: '@Url.Action("UpdateProjectLocation", "ProjectSeBtting")',
 					type: "POST",
 					data: $(this).serialize(),
 					success: function (res) {
@@ -650,7 +646,6 @@
 			});
 		});
 	</script>
-
 
 
 </body>

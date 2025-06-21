@@ -1,13 +1,13 @@
-﻿
-@{
-    int? id =ViewBag.Id;
+﻿@{
+    int? id = ViewBag.Id;
 }
 
 <!DOCTYPE html>
 
-
 <html lang="en">
 <head>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"] - MyApp</title>
@@ -17,25 +17,26 @@
     <link rel="stylesheet" href="/css/site.css">
     <style>
         body {
-            font-family: 'Roboto', sans-serif; /* Updated to Roboto for consistency */
-            background-color: #ffffff; /* White background */
-            margin: 0; /* Remove default margin */
+            font-family: 'Roboto', sans-serif;
+            background-color: #ffffff;
+            margin: 0;
         }
 
         #sidebar {
             width: 250px;
-            background-color: #ffffff; /* White background for sidebar */
-            border-right: 1px solid #e0e0e0; /* Subtle border */
-            transition: width 0.3s ease; /* Smooth transition for width change */
+            background-color: #ffffff;
+            border-right: 1px solid #e0e0e0;
+            transition: width 0.3s ease;
         }
 
             #sidebar.collapsed {
-                width: 60px; /* Reduced width when collapsed */
+                width: 60px;
             }
 
         .nav-link {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 10px;
             padding: 10px 15px;
             font-size: 14px;
@@ -45,12 +46,12 @@
         }
 
             .nav-link:hover {
-                background-color: #f5f5f5; /* Light gray hover effect */
-                color: #5daeff; /* Light blue on hover */
+                background-color: #f5f5f5;
+                color: #5daeff;
             }
 
             .nav-link:active {
-                color: #0056b3; /* Darker blue on click */
+                color: #0056b3;
             }
 
             .nav-link i {
@@ -58,8 +59,32 @@
                 text-align: center;
             }
 
+        .nav-link-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notification-badge {
+            background-color: #dc3545;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 16px;
+            text-align: center;
+            font-weight: bold;
+        }
+
         #sidebar.collapsed .nav-link span {
-            display: none; /* Hide the text when sidebar is collapsed */
+            display: none;
+        }
+
+        #sidebar.collapsed .notification-badge {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
         }
 
         #sidebarToggle {
@@ -67,13 +92,13 @@
             background: none;
             font-size: 20px;
             cursor: pointer;
-            color: #0056b3; /* Blue color to match the previous design */
+            color: #0056b3;
         }
 
         .navbar {
-            background-color: #ffffff; /* White background for navbar */
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Subtle shadow */
-            padding: 10px 15px; /* Adjusted padding */
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            padding: 10px 15px;
         }
 
             .navbar .container-fluid {
@@ -83,25 +108,25 @@
             }
 
             .navbar i {
-                color: #0056b3; /* Blue icon color */
+                color: #0056b3;
             }
 
             .navbar span {
-                color: #666; /* Gray text color */
+                color: #666;
                 font-weight: 500;
             }
 
         #content {
-            padding: 15px; /* Reduced padding for a compact look */
-            background-color: #ffffff; /* White background */
-            margin: 0; /* Remove margin */
-            border-radius: 0; /* Remove border radius */
-            box-shadow: none; /* Remove shadow */
+            padding: 15px;
+            background-color: #ffffff;
+            margin: 0;
+            border-radius: 0;
+            box-shadow: none;
             flex-grow: 1;
         }
 
         .d-flex {
-            background-color: #ffffff; /* Ensure the flex container is white */
+            background-color: #ffffff;
         }
     </style>
 </head>
@@ -109,7 +134,7 @@
     <!-- Top Navbar -->
     <nav class="navbar navbar-expand-lg">
         <button id="sidebarToggle" class="btn btn-outline-primary me-3">
-            <i class="fa-solid fa-arrow-left"></i> <!-- Default to left arrow (sidebar open) -->
+            <i class="fa-solid fa-arrow-left"></i>
         </button>
         <div class="container-fluid d-flex align-items-center">
             <i class="fa-solid fa-user-gear text-primary fs-5"></i>
@@ -125,47 +150,67 @@
             <ul class="nav flex-column">
                 <li class="nav-item">
                     <a asp-controller="ProjectCompany" asp-action="Index" asp-route-id="@id" class="nav-link text-dark">
-
-                        <i class="fa-solid fa-users me-3"></i> <span>Companies</span>
+                        <div class="nav-link-content">
+                            <i class="fa-solid fa-users me-3"></i>
+                            <span>Companies</span>
+                        </div>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a asp-controller="ProjectDocument" asp-action="Index" asp-route-id="@id" class="nav-link text-dark">
-
-                        <i class="fa-solid fa-folder me-3"></i> <span>Docs</span>
+                        <div class="nav-link-content">
+                            <i class="fa-solid fa-folder me-3"></i>
+                            <span>Docs</span>
+                        </div>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a asp-controller="ProjectMembers" asp-action="Index" asp-route-ProjectId="@id" class="nav-link text-dark">
-
-                        <i class="fa-solid fa-building me-3"></i> <span>Members</span>
+                        <div class="nav-link-content">
+                            <i class="fa-solid fa-building me-3"></i>
+                            <span>Members</span>
+                        </div>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a asp-controller="ProjectIssue" asp-action="Index" asp-route-id="@id" class="nav-link d-flex align-items-center px-3 py-2 text-dark hover-bg-light rounded">
-                        <i class="fa-solid fa-bug me-2 text-danger"></i>
-                        <span>Project Issues</span>
+                    <a asp-controller="ProjectIssue" asp-action="Index" asp-route-id="@id" class="nav-link text-dark">
+                        <div class="nav-link-content">
+                            <i class="fa-solid fa-bug me-2 text-danger"></i>
+                            <span class="fw-semibold">Project Issues</span>
+                        </div>
                     </a>
                 </li>
-
                 <li class="nav-item">
                     <a asp-controller="Reviews" asp-action="Index" asp-route-id="@id" class="nav-link text-dark">
-
-                        <i class="fa-solid fa-building me-3"></i> <span>Reviews</span>
+                        <div class="nav-link-content">
+                            <i class="fa-solid fa-building me-3"></i>
+                            <span>Reviews</span>
+                        </div>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a asp-controller="Notification" asp-action="Index" asp-route-id="@id" class="nav-link text-dark position-relative">
+                        <div class="nav-link-content">
+                            <i class="fa-solid fa-bell me-3"></i>
+                            <span>Notifications</span>
+                        </div>
+                        <span class="notification-badge" id="notification-count" style="display: none;">0</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a asp-controller="ProjectActivities" asp-action="index" asp-route-id="@id" class="nav-link text-dark">
-
-                        <i class="fa-solid fa-list-check me-3"></i> <span>Activities</span>
+                        <div class="nav-link-content">
+                            <i class="fa-solid fa-list-check me-3"></i>
+                            <span>Activities</span>
+                        </div>
                     </a>
                 </li>
-
                 <li class="nav-item">
                     <a asp-controller="ProjectSetting" asp-action="index" asp-route-id="@id" class="nav-link text-dark">
-
-                        <i class="fa-solid fa-cog me-3"></i> <span>Settings</span>
-
+                        <div class="nav-link-content">
+                            <i class="fa-solid fa-cog me-3"></i>
+                            <span>Settings</span>
+                        </div>
                     </a>
                 </li>
             </ul>
@@ -194,6 +239,33 @@
                 icon.classList.add("fa-arrow-left");
             }
         });
+
+        // Load notification count when page loads
+        $(document).ready(function() {
+            loadNotificationCount();
+
+            // Refresh notification count every 30 seconds
+            setInterval(loadNotificationCount, 30000);
+        });
+
+        function loadNotificationCount() {
+            $.ajax({
+                url: '@Url.Action("GetUnreadCount", "Notification")',
+                type: 'GET',
+                success: function(data) {
+                    const countElement = document.getElementById('notification-count');
+                    if (data.unreadCount > 0) {
+                        countElement.textContent = data.unreadCount;
+                        countElement.style.display = 'inline';
+                    } else {
+                        countElement.style.display = 'none';
+                    }
+                },
+                error: function() {
+                    console.log('Failed to load notification count');
+                }
+            });
+        }
     </script>
     @RenderSection("Scripts", required: false)
 
