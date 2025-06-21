@@ -72,6 +72,7 @@ namespace ACC.Controllers
             ViewBag.CurrentPage = Page;
             ViewBag.totalPages = TotalPages;
             ViewBag.ShowArchived = showArchived;
+            ViewBag.TotalItems = ProjectCount;
 
             return View("Index", displayProject);
         }

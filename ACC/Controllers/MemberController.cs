@@ -34,27 +34,27 @@ namespace ACC.Controllers
             _userRoleService = userRoleService;
             _companyRepository = companyRepository;
         }
-        public IActionResult Index(int page = 1, string search = "", int pageSize = 10)
+        public IActionResult Index(int page = 1, string search = "", int pageSize = 6)
         {
             var query = _userManager.Users
                 .Include(u => u.Company)
                 .Include(u => u.UserRoles)
                     .ThenInclude(ur => ur.Role)
                 .AsQueryable();
-        
+
             if (!string.IsNullOrEmpty(search))
             {
                 query = query.Where(m => m.UserName.Contains(search));
             }
-        
+
             var totalItems = query.Count();
-        
+
             var users = query
                 .OrderBy(m => m.Id)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
-        
+
             var members = users.Select(m => new MemberVM
             {
                 Id = m.Id,
@@ -64,22 +64,18 @@ namespace ACC.Controllers
                 GlobalAccessLevel = _userRoleService.GetGlobalAccessLevel(m.Id).Name,
                 AddedOn = m.AddedOn
             }).ToList();
-        
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                return Json(new
-                {
-                    data = members,
-                    totalItems,
-                    currentPage = page,
-                    pageSize
-                });
-            }
-        
+
+           
+            ViewBag.TotalItems = totalItems;
+            ViewBag.PageSize = pageSize;
+            ViewBag.Page = page;
+            ViewBag.Search = search;
             ViewBag.Companies = _companyRepository.GetAll();
             ViewBag.GlobalAccessLevelsList = _userRoleService.AllGlobalAccessLevels();
+
             return View(members);
         }
+
 
 
         [HttpPost]

@@ -1,6 +1,8 @@
 ﻿@{
     var CurrentUserId = UserManager.GetUserId(User);
 }
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -162,6 +164,7 @@
             @RenderBody()
         </div>
     </div>
+ 
 
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -184,5 +187,9 @@
             }
         });
     </script>
+    @section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+    }
+@RenderSection("Scripts", required: false)
 </body>
 </html>

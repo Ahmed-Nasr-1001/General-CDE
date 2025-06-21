@@ -44,28 +44,35 @@ namespace ACC.Controllers
 
         public IActionResult Index(int ProjectId, int page = 1, string search = "", int pageSize = 5)
         {
-
+            // Get all user IDs assigned to this project
             var userIdsInProject = _userRoleService.GetMembers(ProjectId);
 
+            // Build the query
             var query = _userManager.Users
-                .Include(u=>u.Company)
+                .Include(u => u.Company)
                 .Include(u => u.UserRoles)
                 .Where(u => userIdsInProject.Contains(u.Id))
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(search))
+            // Apply search filter (by name or email)
+            if (!string.IsNullOrWhiteSpace(search))
             {
-                query = query.Where(m => m.UserName.Contains(search));
+                query = query.Where(m =>
+                    m.UserName.Contains(search) ||
+                    m.Email.Contains(search));
             }
 
+            // Total count after filtering
             var totalItems = query.Count();
 
+            // Paginate results
             var pagedUsers = query
-                .OrderBy(m => m.Id)
+                .OrderBy(m => m.UserName)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .ToList(); 
+                .ToList();
 
+            // Map to ViewModel
             var projectMembers = pagedUsers.Select(m => new ProjectMembersVM
             {
                 Id = m.Id,
@@ -74,19 +81,26 @@ namespace ACC.Controllers
                 Status = m.Status,
                 Company = m.Company?.Name ?? "No Company",
                 AddedOn = m.AddedOn,
-                Position = _userRoleService.GetPosition(m.Id , ProjectId).Name,
-                ProjectAccessLevel = _userRoleService.GetProjectAccessLevel(m.Id , ProjectId).Name,
-
+                Position = _userRoleService.GetPosition(m.Id, ProjectId)?.Name ?? "Unassigned",
+                ProjectAccessLevel = _userRoleService.GetProjectAccessLevel(m.Id, ProjectId)?.Name ?? "None"
             }).ToList();
 
+            // Pass data to View
             ViewBag.Members = _userManager.Users.ToList();
             ViewBag.ProAccessLevelsList = _userRoleService.AllProjectAccessLevels();
             ViewBag.PositionsList = _userRoleService.AllProjectPositions();
             ViewBag.ProjId = ProjectId;
             ViewBag.Id = ProjectId;
 
+            // Pagination values
+            ViewBag.TotalItems = totalItems;
+            ViewBag.PageSize = pageSize;
+            ViewBag.Page = page;
+            ViewBag.Search = search;
+
             return View(projectMembers);
         }
+
 
 
         [HttpPost]

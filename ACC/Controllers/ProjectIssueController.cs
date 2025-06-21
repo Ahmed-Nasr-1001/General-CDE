@@ -504,6 +504,8 @@ namespace ACC.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(ProjectIssueVM model)
         {
+
+
             var issue = issueRepository.GetById(model.Id);
             if (issue == null)
                 return NotFound();

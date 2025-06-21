@@ -267,5 +267,9 @@
             });
         }
     </script>
+    @section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+    }
+    @RenderSection("Scripts", required: false)
 </body>
 </html>

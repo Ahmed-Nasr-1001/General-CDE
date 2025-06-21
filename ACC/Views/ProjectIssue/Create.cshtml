@@ -5,12 +5,18 @@
     Layout = "~/Views/Shared/_ProjectLayout.cshtml";
 }
 
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+
 <h2>Create Project Issue</h2>
 <button class="btn btn-outline-dark rounded px-3 py-2 mb-3" onclick="window.history.back();">
     ⬅ Back to Previous Page
 </button>
 
 <form asp-action="Create" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
     <div class="form-group">
         <label asp-for="Title"></label>
         <input asp-for="Title" class="form-control" />

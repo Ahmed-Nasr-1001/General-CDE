@@ -5,6 +5,11 @@
 @{
 	Layout = "_Layout";
 	var CurrentUserId = UserManager.GetUserId(User);
+	int pageSize = 5;
+	int currentPage = ViewBag.CurrentPage;
+	int totalPages = ViewBag.totalPages;
+	bool showArchived = ViewBag.ShowArchived;
+	string srchText = Context.Request.Query["srchText"];
 }
 
 <!DOCTYPE html>
@@ -15,11 +20,9 @@
 	<meta name="csrf-token" content="@ViewData["CSRFToken"]">
 	<title>Projects</title>
 	<link href="/css/site.css" rel="stylesheet" />
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-
 	<style>
 
 		.custom-notification {
@@ -155,9 +158,9 @@
 			margin: 0 2px;
 		}
 	</style>
+
 </head>
 <body>
-
 	<div class="d-flex">
 		<div class="container-fluid p-4">
 			<div class="header-div">
@@ -167,32 +170,31 @@
 			<div id="custom-notification" class="custom-notification">
 				<span id="notification-message"></span>
 			</div>
-
 			<div id="custom-notification-delete" class="custom-notification-delete">
 				<span id="notification-message-delete"></span>
 			</div>
 
 			<div class="nav-links mb-3">
-				<a href="@Url.Action("Index", new { showArchived = false })" class="@(ViewBag.ShowArchived == false ? "active" : "")">Active</a>
-				<a href="@Url.Action("Index", new { showArchived = true })" class="@(ViewBag.ShowArchived == true ? "active" : "")">Archived</a>
+				<a href="@Url.Action("Index", new { showArchived = false })" class="@(showArchived == false ? "active" : "")">Active</a>
+				<a href="@Url.Action("Index", new { showArchived = true })" class="@(showArchived == true ? "active" : "")">Archived</a>
 			</div>
 
-		    @if (UserRoleService.HasGlobalAccess(CurrentUserId, GlobalAccessLevels.AccountAdmin))
-		    {
-			<div class="d-flex justify-content-between button-group mb-3">
-				<div>
-					<button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addProjectModal">+ Create Project</button>
-					<i class="fas fa-info-circle" style="color: #666;"></i>
-				</div>
-
+			@if (UserRoleService.HasGlobalAccess(CurrentUserId, GlobalAccessLevels.AccountAdmin))
+			{
+				<div class="d-flex justify-content-between button-group mb-3">
+					<div>
+						<button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addProjectModal">+ Create Project</button>
+						<i class="fas fa-info-circle" style="color: #666;"></i>
+					</div>
 					<form action="/Project/Index" method="get" class="d-flex">
+						<input type="hidden" name="showArchived" value="@showArchived" />
 						<div class="search-container">
-							<input type="text" class="form-control" name="srchText" placeholder="Search" value="@Context.Request.Query["srchText"]" />
+							<input type="text" class="form-control" name="srchText" placeholder="Search" value="@srchText" />
 						</div>
 						<button type="submit" class="btn btn-primary ms-2" style="height:40px;">Search</button>
 					</form>
-			</div>
-		    }
+				</div>
+			}
 
 			<div class="table-container">
 				<table class="table table-hover">
@@ -207,10 +209,8 @@
 							<th>Creation Date</th>
 							@if (UserRoleService.HasGlobalAccess(CurrentUserId, GlobalAccessLevels.AccountAdmin))
 							{
-								
-							<th class="action-column">Actions</th>
+								<th class="action-column">Actions</th>
 							}
-
 						</tr>
 					</thead>
 					<tbody>
@@ -234,27 +234,25 @@
 									<td>@item.CreationDate?.ToString("MM/dd/yyyy")</td>
 									@if (UserRoleService.HasGlobalAccess(CurrentUserId, GlobalAccessLevels.AccountAdmin))
 									{
-										
-									<td>
-										<div class="dropdown">
-											<button class="btn btn-light btn-sm dropdown-toggle" type="button" id="dropdownMenuButton_@item.id" data-bs-toggle="dropdown" aria-expanded="false">
-												&#x22EE;
-											</button>
-											<ul class="dropdown-menu" aria-labelledby="dropdownMenuButton_@item.id">
-												@if (ViewBag.ShowArchived == false)
-												{
-													<li><a class="dropdown-item archive-project" data-id="@item.id" href="#">Archive project</a></li>
-													<li><a class="dropdown-item text-danger delete-project" data-id="@item.id" href="#">Delete project</a></li>
-												}
-												else
-												{
-													<li><a class="dropdown-item restore-project" data-id="@item.id" href="#">Restore project</a></li>
-												}
-											</ul>
-										</div>
-									</td>
+										<td>
+											<div class="dropdown">
+												<button class="btn btn-light btn-sm dropdown-toggle" type="button" id="dropdownMenuButton_@item.id" data-bs-toggle="dropdown" aria-expanded="false">
+													&#x22EE;
+												</button>
+												<ul class="dropdown-menu" aria-labelledby="dropdownMenuButton_@item.id">
+													@if (showArchived == false)
+													{
+														<li><a class="dropdown-item archive-project" data-id="@item.id" href="#">Archive project</a></li>
+														<li><a class="dropdown-item text-danger delete-project" data-id="@item.id" href="#">Delete project</a></li>
+													}
+													else
+													{
+														<li><a class="dropdown-item restore-project" data-id="@item.id" href="#">Restore project</a></li>
+													}
+												</ul>
+											</div>
+										</td>
 									}
-
 								</tr>
 							}
 						}
@@ -262,14 +260,23 @@
 				</table>
 			</div>
 
-			<div class="pagination mt-3 d-flex justify-content-center gap-2">
-				@for (int i = 1; i <= (ViewBag.totalPages ?? 1); i++)
-				{
-					<a href="@Url.Action("Index", new { page = i, srchText = Context.Request.Query["srchText"], showArchived = ViewBag.ShowArchived })"
-					   class="btn @(i == (ViewBag.CurrentPage ?? 1) ? "btn-primary" : "btn-light")">
-						@i
-					</a>
-				}
+			<!-- Pagination + Count -->
+			<div class="d-flex justify-content-between align-items-center mt-3">
+				<p class="mb-0">Showing @((currentPage - 1) * pageSize + 1) to @(Math.Min(currentPage * pageSize, Model.Count + ((currentPage - 1) * pageSize))) of @((ViewBag.TotalItems ?? Model.Count)) projects</p>
+
+				<div class="pagination d-flex gap-2">
+					<a class="btn btn-light @(currentPage == 1 ? "disabled" : "")" href="@Url.Action("Index", new { page = currentPage - 1, srchText = srchText, showArchived = showArchived })">Previous</a>
+
+					@for (int i = 1; i <= totalPages; i++)
+					{
+						<a href="@Url.Action("Index", new { page = i, srchText = srchText, showArchived = showArchived })"
+						   class="btn @(i == currentPage ? "btn-primary" : "btn-light")">
+							@i
+						</a>
+					}
+
+					<a class="btn btn-light @(currentPage == totalPages ? "disabled" : "")" href="@Url.Action("Index", new { page = currentPage + 1, srchText = srchText, showArchived = showArchived })">Next</a>
+				</div>
 			</div>
 
 			<partial name="PartialViews/_AddProjectPartialView" model="new AddProjectVM()" />
