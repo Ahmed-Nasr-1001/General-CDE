@@ -42,9 +42,9 @@ namespace ACC.Services
             return counter;
         }
 
-        public IList<ReviewStepUser> GetByStepId(int StepId)
+        public IList<ReviewStepUser> GetByStepId(int StepId , int ReviewId)
         {
-            return _context.Set<ReviewStepUser>().Where(w => w.StepId == StepId).ToList();
+            return _context.Set<ReviewStepUser>().Where(w => w.StepId == StepId && w.ReviewId == ReviewId).ToList();
         }
         public void Insert(ReviewStepUser obj)
         {

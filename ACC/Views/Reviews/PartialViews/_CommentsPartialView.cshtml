@@ -19,7 +19,7 @@ else
     </ul>
 }
 
-@if (ViewBag.CurrentUserId != ViewBag.Initiator)
+@if (ViewBag.CurrentUserId != ViewBag.Initiator && ViewBag.CanComment==true)
 {
     <form id="commentForm" class="comment-form" asp-action="AddComment" method="post" class="mt-4">
         <input type="hidden" name="documentId" value="@ViewBag.DocumentId" />

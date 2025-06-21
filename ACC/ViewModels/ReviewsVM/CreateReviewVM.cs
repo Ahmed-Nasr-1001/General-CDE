@@ -23,10 +23,10 @@ namespace ACC.ViewModels.ReviewsVM
         [Display(Name = "Workflow")]
         public int SelectedWorkflowId { get; set; }
 
-        public FinalReviewStatus SelectedFinalReviewStatus { get; set; }
+        public FinalReviewStatus? SelectedFinalReviewStatus { get; set; }
 
-        public List<WorkflowTemplate> WorkflowTemplates { get; set; }
-        public List<FinalReviewStatus> FinalReviewStatuses { get; set; }
+        public List<WorkflowTemplate>? WorkflowTemplates { get; set; }
+        public List<FinalReviewStatus>? FinalReviewStatuses { get; set; }
 
         public List<FolderWithDocumentsVM>? AllFolders { get; set; }
 

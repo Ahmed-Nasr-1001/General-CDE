@@ -108,16 +108,7 @@ namespace ACC.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateTemplate(WorkflowTemplateViewModel vm)
         {
-            foreach (var entry in ModelState)
-            {
-                var key = entry.Key;
-                var errors = entry.Value.Errors;
-
-                foreach (var error in errors)
-                {
-                    Console.WriteLine($"❌ Field: {key} | Error: {error.ErrorMessage}");
-                }
-            }
+           
 
             if (!ModelState.IsValid)
             {
@@ -349,7 +340,7 @@ namespace ACC.Controllers
                     var step = StepsFromVM[i];
                     var savedStep = stepsFromDB[i];
 
-                    var OldStepUsers = _reviewStepUsersService.GetByStepId(savedStep.Id);
+                    var OldStepUsers = _reviewStepUsersService.GetByStepId(savedStep.Id , review.Id);
 
                     foreach (var item in OldStepUsers)
                     {

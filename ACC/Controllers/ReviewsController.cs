@@ -56,25 +56,25 @@ namespace ACC.Controllers
 
             if (showArchived)
             {
-                query = _reviewRepository.GetAll().Where(r =>r.ProjectId==id && r.FinalReviewStatus == FinalReviewStatus.Approved 
-                || r.FinalReviewStatus == FinalReviewStatus.Rejected && r.InitiatorUserId == CurrentUser.Id).OrderByDescending(r => r.Id);
+                query = _reviewRepository.GetAll().Where(r =>r.ProjectId==id && r.FinalReviewStatus != FinalReviewStatus.Pending 
+                && r.InitiatorUserId == CurrentUser.Id).OrderByDescending(r => r.Id);
             }
 
             else if (reviewedByMe)
             {
                 var ReviewIdList = ReviewStepUsersService.GetAll()
-                       .Where(r => r.UserId == CurrentUser.Id && r.IsApproved != null)
+                       .Where(r => r.UserId == CurrentUser.Id && r.IsApproved != null )
                        .Select(r =>r.ReviewId)
                        .Distinct();
 
-                query = _reviewRepository.GetAll().Where(r => r.ProjectId == id && ReviewIdList.Contains(r.Id)).OrderByDescending(r=>r.Id).OrderByDescending(r => r.Id);
+                query = _reviewRepository.GetAll().Where(r => r.ProjectId == id && r.InitiatorUserId != CurrentUser.Id && ReviewIdList.Contains(r.Id)).OrderByDescending(r=>r.Id).OrderByDescending(r => r.Id);
 
 
             }
             else if (startedByMe)
             {
                 query = _reviewRepository.GetAll().Where(r => r.ProjectId == id 
-                && r.FinalReviewStatus != FinalReviewStatus.Approved && r.InitiatorUserId== CurrentUser.Id).OrderByDescending(r => r.Id);
+                && r.FinalReviewStatus == FinalReviewStatus.Pending && r.InitiatorUserId== CurrentUser.Id).OrderByDescending(r => r.Id);
 
             }
 
@@ -144,112 +144,125 @@ namespace ACC.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return View("CreateReview", model); 
+                var allErrors = ModelState
+                    .Where(ms => ms.Value.Errors.Count > 0)
+                    .Select(ms => new
+                    {
+                        Field = ms.Key,
+                        Errors = ms.Value.Errors.Select(e => e.ErrorMessage).ToList()
+                    }).ToList();
+
+                // Example: Log them or inspect in debugger
+                foreach (var error in allErrors)
+                {
+                    Console.WriteLine($"Field: {error.Field}");
+                    foreach (var err in error.Errors)
+                    {
+                        Console.WriteLine($"   Error: {err}");
+                    }
+                }
+
+                return PartialView("PartialViews/_CreateReviewPartialView", model);
             }
+
+
+
 
             var Templatesteps = _workflowRepository.GetById(model.SelectedWorkflowId).Steps;
-            var CurrentUser = await UserManager.GetUserAsync(User);
+                var CurrentUser = await UserManager.GetUserAsync(User);
 
-           
-
-            try
-            {
-
-                var Review = new Review
-                {
-                    ProjectId = model.proId,
-                    Name = model.Name,
-                    FinalReviewStatus = model.SelectedFinalReviewStatus,
-                    WorkflowTemplate = _workflowRepository.GetById(model.SelectedWorkflowId),
-                    WorkflowTemplateId = model.SelectedWorkflowId,
-                    CurrentStepId = GetFirstStepId(model.SelectedWorkflowId),
-                    CreatedAt = DateTime.Now,
-                    InitiatorUserId = CurrentUser.Id,
-
-                };
-                _reviewRepository.Insert(Review);
-                _reviewRepository.Save();
-
-                // Send notifications to assigned reviewers
-                await _notificationService.NotifyReviewCreatedAsync(Review);
-
-                if (model.SelectedDocumentIds != null)
-                {
-                    foreach (var id in model.SelectedDocumentIds)
+                    var Review = new Review
                     {
-                        var ReviewDocument = new ReviewDocument
-                        {
-                            ReviewId = Review.Id,
-                            DocumentId = id,
-                            Status = "Pending"
-                        };
+                        ProjectId = model.proId,
+                        Name = model.Name,
+                        FinalReviewStatus = FinalReviewStatus.Pending,
+                        WorkflowTemplate = _workflowRepository.GetById(model.SelectedWorkflowId),
+                        WorkflowTemplateId = model.SelectedWorkflowId,
+                        CurrentStepId = null,
+                        CreatedAt = DateTime.Now,
+                        InitiatorUserId = CurrentUser.Id,
 
-                        ReviewDocumentService.Insert(ReviewDocument);
-                        ReviewDocumentService.Save();
-
-
-                    }
-
-                }
-               
-                if(model.SelectedFolderIds !=null)
-                {
-                    foreach (var id in model.SelectedFolderIds)
-                    {
-                        var ReviewFolder = new ReviewFolder
-                        {
-                            ReviewId = Review.Id,
-                            FolderId = id,
-                        };
-
-                        ReviewFolderService.Insert(ReviewFolder);
-                        ReviewFolderService.Save();
-
-
-                    }
-
-                }
-
-                List<int> StepsId = new List<int>();
-                foreach(var item in Review.WorkflowTemplate.Steps)
-                {
-                    StepsId.Add(item.Id);
-                }
-
-                List<WorkflowStepUser> workflowStepUsers = new List<WorkflowStepUser>();
-                foreach(var item in StepsId)
-                {
-                    List<WorkflowStepUser> workflowStepUsers2 = WorkflowStepUserService.GetByStepId(item).ToList();
-                    foreach(var item2 in workflowStepUsers2)
-                    {
-                        workflowStepUsers.Add(item2);
-
-                    }
-
-                }
-
-                foreach(var item in workflowStepUsers)
-                {
-                    var ReviewStepUser = new ReviewStepUser()
-                    {
-                        ReviewId = Review.Id,
-                        StepId = item.StepId,
-                        UserId = item.UserId,
                     };
-                    ReviewStepUsersService.Insert(ReviewStepUser);
-                    ReviewStepUsersService.Save();
+                    _reviewRepository.Insert(Review);
+                    _reviewRepository.Save();
+
+                    // Send notifications to assigned reviewers
+                    await _notificationService.NotifyReviewCreatedAsync(Review);
+
+                    if (model.SelectedDocumentIds != null)
+                    {
+                        foreach (var id in model.SelectedDocumentIds)
+                        {
+                            var ReviewDocument = new ReviewDocument
+                            {
+                                ReviewId = Review.Id,
+                                DocumentId = id,
+                                Status = "Pending"
+                            };
+
+                            ReviewDocumentService.Insert(ReviewDocument);
+                            ReviewDocumentService.Save();
+
+
+                        }
+
+                    }
+
+                    if (model.SelectedFolderIds != null)
+                    {
+                        foreach (var id in model.SelectedFolderIds)
+                        {
+                            var ReviewFolder = new ReviewFolder
+                            {
+                                ReviewId = Review.Id,
+                                FolderId = id,
+                            };
+
+                            ReviewFolderService.Insert(ReviewFolder);
+                            ReviewFolderService.Save();
+
+
+                        }
+
+                    }
+
+                    List<int> StepsId = new List<int>();
+                    foreach (var item in Review.WorkflowTemplate.Steps)
+                    {
+                        StepsId.Add(item.Id);
+                    }
+
+                    List<WorkflowStepUser> workflowStepUsers = new List<WorkflowStepUser>();
+                    foreach (var item in StepsId)
+                    {
+                        List<WorkflowStepUser> workflowStepUsers2 = WorkflowStepUserService.GetByStepId(item).ToList();
+                        foreach (var item2 in workflowStepUsers2)
+                        {
+                            workflowStepUsers.Add(item2);
+
+                        }
+
+                    }
+
+                    foreach (var item in workflowStepUsers)
+                    {
+                        var ReviewStepUser = new ReviewStepUser()
+                        {
+                            ReviewId = Review.Id,
+                            StepId = item.StepId,
+                            UserId = item.UserId,
+                        };
+                        ReviewStepUsersService.Insert(ReviewStepUser);
+                        ReviewStepUsersService.Save();
+                    }
+
+
+                    return RedirectToAction("Index", new { id = model.proId, startedByMe = true });
                 }
+            
 
-
-                return RedirectToAction("Index" , new { id = model.proId , startedByMe = true });
-            }
-            catch (Exception ex)
-            {
-                ModelState.AddModelError(string.Empty, ex.InnerException?.Message ?? ex.Message);
-            }
-
-            return RedirectToAction("CreateReview", model);
-        }
+          
+        
 
 
         public async Task<IActionResult> StartReview(int Id)
@@ -334,7 +347,7 @@ namespace ACC.Controllers
                 {
                     if(StepMultiReviewerOption == (MultiReviewerOptions)1)
                     {
-                       var StepUsers = ReviewStepUsersService.GetByStepId(CurrntStep.Id);
+                       var StepUsers = ReviewStepUsersService.GetByStepId(CurrntStep.Id ,Id );
                        foreach (var item in StepUsers)
                         {
                             if (item.IsApproved != true)
@@ -347,7 +360,7 @@ namespace ACC.Controllers
                     }
                     else if (StepMultiReviewerOption == (MultiReviewerOptions)2)
                     {
-                        var StepUsers = ReviewStepUsersService.GetByStepId(CurrntStep.Id);
+                        var StepUsers = ReviewStepUsersService.GetByStepId(CurrntStep.Id , Id);
                         int counter = 0;
 
                         foreach(var item in StepUsers)
@@ -356,7 +369,7 @@ namespace ACC.Controllers
                                 { counter++; }
                         }
 
-                        if (counter != CurrntStep.MinReviewers)
+                        if (counter < CurrntStep.MinReviewers)
                         {
                             Advance=false;
                         }
@@ -393,6 +406,10 @@ namespace ACC.Controllers
                     bool copy = workflow.CopyApprovedFiles;
                     ReviewFromDB.CurrentStepId = null;
                     ReviewFromDB.FinalReviewStatus = FinalReviewStatus.Approved;
+                    _reviewRepository.Update(ReviewFromDB);
+                    _reviewRepository.Save();
+
+
 
 
                     if (copy == true)
@@ -443,7 +460,7 @@ namespace ACC.Controllers
 
             if(StepReviewerType == (ReviewersType)1 && StepMultiReviewerOption == (MultiReviewerOptions)2)
             {
-                var StepUsers = ReviewStepUsersService.GetByStepId(CurrntStep.Id);
+                var StepUsers = ReviewStepUsersService.GetByStepId(CurrntStep.Id, Id);
                 int counter = 0;
 
                 foreach (var item in StepUsers)
@@ -522,11 +539,16 @@ namespace ACC.Controllers
             ViewBag.ReviewId = review.Id;
             ViewBag.CurrentUserId = CurrentUser.Id;
             ViewBag.Initiator = review.InitiatorUserId;
-            
-         
-             if (CurrentUser.Id != review.InitiatorUserId)
+
+
+            if (CurrentUser.Id != review.InitiatorUserId && review.CurrentStep != null)
             {
-                ViewBag.CurrentStepOrder =  review.CurrentStep.StepOrder;
+                ViewBag.CurrentStepOrder = review.CurrentStep.StepOrder;
+                ViewBag.CanComment = true;
+            }
+            else
+            {
+                ViewBag.CanComment = false;
             }
 
 
