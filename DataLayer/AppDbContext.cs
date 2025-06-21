@@ -139,9 +139,15 @@ namespace DataLayer
                 .HasForeignKey(rd => rd.ReviewId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.Entity<ReviewDocumentComment>()
+                   .HasOne(c => c.Review)
+                   .WithMany(r => r.Comments)
+                   .HasForeignKey(c => c.ReviewId)
+                   .OnDelete(DeleteBehavior.Restrict); 
 
 
-  /// issue
+
+            /// issue
             builder.Entity<Issue>()
                 .HasOne(i => i.Project)
                 .WithMany(p => p.Issues)
@@ -195,7 +201,7 @@ namespace DataLayer
             builder.Ignore<IdentityUserRole<string>>();
             // Composite Key: ApplicationUserRole
             builder.Entity<ApplicationUserRole>()
-                .HasKey(ur => new { ur.UserId, ur.RoleId });
+                .HasKey(ur => new { ur.Id });
 
             builder.Entity<ApplicationUserRole>()
                 .HasOne(ur => ur.User)
@@ -251,9 +257,11 @@ namespace DataLayer
         public DbSet<WorkflowStepTemplate> WorkflowStepTemplates { get; set; }
         public DbSet<ReviewFolder> ReviewsFolders { get; set; }
         public DbSet<ReviewDocument> ReviewDocuments { get; set; }
+
+        public DbSet<ReviewDocumentComment> ReviewDocumentComments { get; set; }
         public DbSet<ReviewStepUser> ReviewStepUsers { get; set; }
         public DbSet<WorkflowStepUser> WorkflowStepUsers { get; set; }
-
+        
        
 
         public DbSet<ApplicationUserRole> ApplicationUserRoles { get; set; }

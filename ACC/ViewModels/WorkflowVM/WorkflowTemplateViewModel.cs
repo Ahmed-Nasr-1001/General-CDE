@@ -1,5 +1,7 @@
 ﻿using DataLayer.Models;
 using DataLayer.Models.Enums;
+using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace ACC.ViewModels.WorkflowVM
 {
@@ -8,14 +10,17 @@ namespace ACC.ViewModels.WorkflowVM
 
         public int proId { get; set; }
         public int? Id { get; set; }
+        [Required(ErrorMessage = "Name is required")]
 
+        [Remote("IsNameUnique", "Workflow", AdditionalFields = "proId", ErrorMessage = "Name already exists for this project")]
         public string Name { get; set; }
+        [Required(ErrorMessage = "Description is required")]
 
         public string Description { get; set; }
 
         public List<ProjectReviewersVM> Reviewers { get; set; } = new List<ProjectReviewersVM>();
 
-        public string SelectedAppUserId { get; set; }
+        public string? SelectedAppUserId { get; set; }
 
 
         public List<FolderVM>? AllFolders { get; set; }

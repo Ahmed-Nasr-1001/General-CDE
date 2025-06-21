@@ -10,7 +10,7 @@ namespace ACC.ViewModels.ReviewsVM
 
         public string Comment { get; set; }
 
-        public FinalReviewStatus State { get; set; } = FinalReviewStatus.Pending;
+        public string State { get; set; } 
 
         public bool? IsApproved { get; set; }
     }

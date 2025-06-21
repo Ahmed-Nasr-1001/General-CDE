@@ -1,5 +1,6 @@
-﻿@using ACC.ViewModels.MemberVM.MemberVM
-@model InsertMemberVM
+﻿@using ACC.ViewModels.MemberVM
+@using ACC.ViewModels.MemberVM.MemberVM
+@model InserProjecttMembersVM
 
 @{
     var companies = ViewBag.Companies as SelectList;
@@ -14,10 +15,9 @@
             <span id="memberInitials">@(Model?.Email?[0].ToString().ToUpper() ?? "N/A")</span>
         </div>
         <div class="member-info">
-            <h5 id="memberName">@(Model?.Email.Split("@")[0] ?? "N/A")</h5>
-            <p class="text-muted" id="memberPhone">No phone number</p>
-            <input type="email" disabled id="memberEmail" class="form-control" value="@Model?.Email"/>
-            <span class="status-badge">@(Model?.Status)</span>
+            <h5 id="memberName">@(Model?.FirstName+" "+Model?.LastName)</h5>
+            <p class="text-muted" id="memberPhone">@Model?.MobilePhone</p>
+            <input type="email" style="font-size:15px" disabled id="memberEmail" class="form-control" value="@Model?.Email"/>
         </div>
         <button id="closePanel" class="close-btn"><i class="bi bi-x"></i></button>
     </div>

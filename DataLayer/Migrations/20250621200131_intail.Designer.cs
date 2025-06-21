@@ -12,8 +12,13 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
+<<<<<<<< HEAD:DataLayer/Migrations/20250621200131_intail.Designer.cs
     [Migration("20250621200131_intail")]
     partial class intail
+========
+    [Migration("20250621181449_init")]
+    partial class init
+>>>>>>>> 770097ffce65cfc737188c1a5b37ab9dec40d8b7:DataLayer/Migrations/20250621181449_init.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -107,6 +112,9 @@ namespace DataLayer.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("MobilePhone")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -154,20 +162,30 @@ namespace DataLayer.Migrations
 
             modelBuilder.Entity("DataLayer.Models.ApplicationUserRole", b =>
                 {
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                    b.Property<string>("RoleId")
-                        .HasColumnType("nvarchar(450)");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int?>("ProjectId")
                         .HasColumnType("int");
 
-                    b.HasKey("UserId", "RoleId");
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("ProjectId");
 
                     b.HasIndex("RoleId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("AspNetUserRoles", (string)null);
                 });
@@ -692,9 +710,6 @@ namespace DataLayer.Migrations
                     b.Property<int>("DocumentId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Comment")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool?>("IsApproved")
                         .HasColumnType("bit");
 
@@ -706,6 +721,53 @@ namespace DataLayer.Migrations
                     b.HasIndex("DocumentId");
 
                     b.ToTable("ReviewDocuments");
+                });
+
+            modelBuilder.Entity("DataLayer.Models.ReviewDocumentComment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DocumentId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ReviewDocumentDocumentId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ReviewDocumentReviewId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReviewId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReviewerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("StepOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DocumentId");
+
+                    b.HasIndex("ReviewId");
+
+                    b.HasIndex("ReviewerId");
+
+                    b.HasIndex("ReviewDocumentReviewId", "ReviewDocumentDocumentId");
+
+                    b.ToTable("ReviewDocumentComments");
                 });
 
             modelBuilder.Entity("DataLayer.Models.ReviewFolder", b =>
@@ -1261,6 +1323,37 @@ namespace DataLayer.Migrations
                     b.Navigation("Review");
                 });
 
+            modelBuilder.Entity("DataLayer.Models.ReviewDocumentComment", b =>
+                {
+                    b.HasOne("DataLayer.Models.Document", "Document")
+                        .WithMany()
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DataLayer.Models.Review", "Review")
+                        .WithMany("Comments")
+                        .HasForeignKey("ReviewId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DataLayer.Models.ApplicationUser", "Reviewer")
+                        .WithMany()
+                        .HasForeignKey("ReviewerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DataLayer.Models.ReviewDocument", null)
+                        .WithMany("Comments")
+                        .HasForeignKey("ReviewDocumentReviewId", "ReviewDocumentDocumentId");
+
+                    b.Navigation("Document");
+
+                    b.Navigation("Review");
+
+                    b.Navigation("Reviewer");
+                });
+
             modelBuilder.Entity("DataLayer.Models.ReviewFolder", b =>
                 {
                     b.HasOne("DataLayer.Models.Folder", "Folder")
@@ -1474,11 +1567,18 @@ namespace DataLayer.Migrations
 
             modelBuilder.Entity("DataLayer.Models.Review", b =>
                 {
+                    b.Navigation("Comments");
+
                     b.Navigation("ReviewDocuments");
 
                     b.Navigation("ReviewFolders");
 
                     b.Navigation("ReviewStepUsers");
+                });
+
+            modelBuilder.Entity("DataLayer.Models.ReviewDocument", b =>
+                {
+                    b.Navigation("Comments");
                 });
 
             modelBuilder.Entity("DataLayer.Models.Transmittal", b =>

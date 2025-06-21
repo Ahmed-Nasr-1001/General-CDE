@@ -1,7 +1,8 @@
 ﻿@using ACC.ViewModels
+@using ACC.ViewModels.MemberVM
 @using ACC.ViewModels.MemberVM.MemberVM
 @using ACC.ViewModels.ProjectMembersVM
-@model InsertMemberVM
+@model InserProjecttMembersVM
 @{
     var members = new SelectList(ViewBag.Members);
     var PositionsList = new SelectList(ViewBag.PositionsList, "Id", "Name");
@@ -23,6 +24,7 @@
                         <select class="form-select" asp-for="Name" asp-items="members">
                             <option value="" disabled selected>Select Member</option>
                         </select>
+                        <span asp-validation-for="Name" class="text-danger"></span>
                     </div>
                     <div class="mb-3">
                         <label asp-for="ProjectAccessLevelId" class="form-label">Access Level</label>
@@ -31,6 +33,7 @@
 
                             <option value="" selected>No Access</option>
                         </select>
+                        <span asp-validation-for="ProjectAccessLevelId" class="text-danger"></span>
                     </div>
                     <div class="mb-3">
                         <label asp-for="PositionId" class="form-label">Select Role</label>
@@ -39,6 +42,7 @@
 
                             <option value="" selected>No Role</option>
                         </select>
+                        <span asp-validation-for="PositionId" class="text-danger"></span>
                     </div>
 
                  
@@ -54,3 +58,6 @@
 </div>
 
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>

@@ -12,6 +12,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
+        .modal-content {
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        }
+
         .selected {
             background-color: #f8d7da !important;
         }
@@ -76,111 +81,133 @@
 
     <div class="container-fluid p-4">
         <h2><i class="bi bi-journal-text me-2"></i>@ViewBag.ReviewName</h2>
+        @if (TempData["Error"] != null)
+             {
+                 <div class="alert alert-warning">@TempData["Error"]</div>
+             }
 
-        <form asp-controller="Reviews" asp-action="Submit" asp-route-ReviewId="@ViewBag.ReviewId" method="post">
+        <form  asp-controller="Reviews" asp-action="Submit" asp-route-ReviewId="@ViewBag.ReviewId" method="post" >
+           
             <table class="table table-bordered table-hover shadow-sm">
                 <thead class="table-light">
                     <tr>
                         <th>Name</th>
                         <th>Comment</th>
-                        <th>Status</th>
-                        @if (ViewBag.CurrentUserId != ViewBag.Initiator)
+                        @if (ViewBag.CurrentUserId == ViewBag.Initiator)
                         {
-                            <th class="action-column text-center">Action</th>
+                         <th>Final Status</th>
+
                         }
-                        <th>Open</th>
+                        else
+                        {
+                        <th>Status</th>
+                            
+                        }
+                     
                     </tr>
                 </thead>
                 <tbody>
                     @for (int i = 0; i < Model.Count; i++)
                     {
+                         <input type="hidden" name="[@i].Id" value="@Model[i].Id" />
+
                         <tr>
                             <td>@Model[i].Name</td>
-                            <td>@Model[i].Comment</td>
-                            <td>@Model[i].State</td>
-
-                            @if (ViewBag.CurrentUserId != ViewBag.Initiator)
-                            {
-                                <td class="text-center">
-                                    <div class="form-check d-inline-flex align-items-center justify-content-center">
-                                        <input class="form-check-input" type="checkbox" name="[@i].IsApproved" value="true" id="approve-@i" />
-                                        <label class="form-check-label" for="approve-@i">Approve</label>
-                                    </div>
-                                    <input type="hidden" name="[@i].IsApproved" value="false" />
-
-                                    <!-- Preserve values -->
-                                    <input type="hidden" name="[@i].Id" value="@Model[i].Id" />
-                                    <input type="hidden" name="[@i].Name" value="@Model[i].Name" />
-                                    <input type="hidden" name="[@i].Comment" value="@Model[i].Comment" />
-                                    <input type="hidden" name="[@i].State" value="@Model[i].State" />
-                                </td>
-                            }
                             <td>
-                                <button class="dropdown-item view-document" onclick="openFile(@Model[i].Id)">
-                                    View File
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-secondary open-comments-btn"
+                                        data-document-id="@Model[i].Id"
+                                        data-review-id="@ViewBag.ReviewId"
+                                        data-step-order="@ViewBag.CurrentStepOrder">
+                                    <i class="bi bi-chat-left-text"></i> Comments
                                 </button>
                             </td>
+                            @if (ViewBag.CurrentUserId == ViewBag.Initiator)
+                            {
+                                <td>@Model[i].State</td>
+                            }
+                            else
+                            {
+                                <td>
+                                    <select class="form-select form-select-sm" asp-for="@Model[i].State">
+                                        <option value="Approved">Approved</option>
+                                        <option value="Rejected">Rejected</option>
+                                        <option value="Pending">Pending</option>
+                                    </select>
+                                </td>
+                            }
+                         
+
+
                         </tr>
                     }
                 </tbody>
             </table>
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-send me-1"></i>Submit Review
-            </button>
+
+            @if (ViewBag.CurrentUserId != ViewBag.Initiator)
+            {
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-send me-1"></i>Submit Review
+                </button>
+            }
         </form>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-</body>
-</html>
+    <!-- Modal Placeholder -->
+    <div class="modal fade" id="commentsModal" tabindex="-1" aria-labelledby="commentsLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="commentsLabel">Comments</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="commentsModalBody">
+                    <div class="text-center">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-                            <script>
-                                 async function openFile(documentId) {
-        const fileModal = new bootstrap.Modal(document.getElementById("fileModal"));
-        const fileViewer = document.getElementById("fileViewer");
-        const loadingSpinner = document.getElementById("loadingSpinner");
-        const errorMessage = document.getElementById("errorMessage");
+<script>
+    $(document).ready(function () {
 
-        // Reset UI
-        fileViewer.innerHTML = '';
-        errorMessage.classList.add("d-none");
-        loadingSpinner.classList.remove("d-none");
+        // عند الضغط على زر "Comments"
+        $(".open-comments-btn").click(function () {
+            const documentId = $(this).data("document-id");
+            const reviewId = $(this).data("review-id");
+            const currentStepOrder = $(this).data("step-order");
 
-        try {
-            const response = await fetch(`/ProjectDocument/OpenFile?documentId=${documentId}`);
-            if (!response.ok) {
-                throw new Error(`Server error: ${response.statusText}`);
-            }
+            // عرض رسالة تحميل مؤقتة داخل المودال
+            $("#commentsModalBody").html('<div class="text-center">Loading...</div>');
 
-            const data = await response.json();
-            loadingSpinner.classList.add("d-none");
+            // تحميل التعليقات والفورم من السيرفر
+            $.get("/Reviews/DocumentComments", { documentId, reviewId, currentStepOrder }, function (data) {
+                $("#commentsModalBody").html(data); // عرض البيانات داخل المودال
+                $('#commentsModal').modal('show');   // فتح المودال
+            });
+        });
 
-            if (data.fileUrl && data.fileType) {
-                if (data.fileType === ".pdf") {
-                    fileViewer.innerHTML = `<iframe src="${data.fileUrl}" style="width: 100%; height: 500px;" frameborder="0"></iframe>`;
-                    fileModal.show();
-                } else if (data.fileType === ".png" || data.fileType === ".jpg") {
-                    fileViewer.innerHTML = `<img src="${data.fileUrl}" style="max-width: 100%; height: auto;" />`;
-                    fileModal.show();
-                }else if (data.fileType === ".ifc"){
-                      const viewerUrl = `/IfcViewer/Index?filePath=${encodeURIComponent(data.fileUrl)}&projectId=${(data.projectId)}`;
-                      window.location.href = viewerUrl;
-                }
-                else {
-                    throw new Error("Unsupported file type: " + data.fileType);
-                }
-            } else {
+        // عند إرسال نموذج التعليق (بـ Delegation لأنه يتحمّل ديناميكيًا)
+        $(document).on('submit', '.comment-form', function (e) {
+            e.preventDefault();
+            const form = $(this);
+            const btn = form.find("button[type=submit]");
+            btn.prop("disabled", true); // تعطيل الزر مؤقتًا
 
+            // إرسال البيانات إلى السيرفر
+            $.post(form.attr('action'), form.serialize(), function (data) {
+                $('#commentsModalBody').html(data); // إعادة تحميل التعليقات والفورم
+            }).always(() => {
+                btn.prop("disabled", false); // إعادة تفعيل الزر
+            });
+        });
 
-                throw new Error("Invalid response from server.");
-            }
-        } catch (error) {
-            loadingSpinner.classList.add("d-none");
-            errorMessage.textContent = `Failed to load file: ${error.message}`;
-            errorMessage.classList.remove("d-none");
-            console.error("Error:", error);
-        }
-    }
+    });
+</script>
 
-                            </script>
+</body>
+</html>

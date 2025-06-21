@@ -2,89 +2,91 @@
 @using ACC.ViewModels.MemberVM
 @using ACC.ViewModels.MemberVM.MemberVM
 @model InsertMemberVM
+
 @{
-    var companies = new SelectList(ViewBag.Companies,"Id","Name");
+    var companies = new SelectList(ViewBag.Companies, "Id", "Name");
     var GlobalAccessLevelsList = new SelectList(ViewBag.GlobalAccessLevelsList, "Id", "Name");
 }
+
 <div class="modal fade" id="addMemberModal" tabindex="-1" aria-labelledby="addMemberModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addMemberModalLabel">Add account members</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addMemberForm" method="post">
+            <form id="addMemberForm" method="post" asp-action="InsertMember" asp-controller="Member">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addMemberModalLabel">Add Account Member</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
                     <div class="mb-3">
-                        <label asp-for="Email" class="form-label">Enter or copy and paste email addresses *</label>
-                        <textarea class="form-control" Asp-for="Email" rows="2" placeholder="person@company.com"></textarea>
+                        <label asp-for="FirstName" class="form-label"></label>
+                        <input asp-for="FirstName" class="form-control" placeholder="e.g. First Name" />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="LastName" class="form-label"></label>
+                        <input asp-for="LastName" class="form-control" placeholder="e.g. Last Name" />
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="MobilePhone" class="form-label"></label>
+                        <input asp-for="MobilePhone" class="form-control" placeholder="e.g. +20 ### ### ####" />
+                        <span asp-validation-for="MobilePhone" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="CompanyId" class="form-label"></label>
+                        <select asp-for="CompanyId" asp-items="companies" class="form-select">
+                            <option value="">No Company</option>
+                        </select>
+                        <span asp-validation-for="CompanyId" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="GlobalAccessLevelId" class="form-label"></label>
+                        <select asp-for="GlobalAccessLevelId" asp-items="GlobalAccessLevelsList" class="form-select">
+                            <option value="">No Access</option>
+                        </select>
+                        <span asp-validation-for="GlobalAccessLevelId" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label">Email </label>
+                        <input asp-for="Email" type="email" class="form-control" placeholder="e.g. person@company.com" />
                         <span asp-validation-for="Email" class="text-danger"></span>
                     </div>
-                    <div class="mb-3">
-                        <label asp-for="CompanyId" class="form-label">Company</label>
-                        <select class="form-select" asp-for="CompanyId" asp-items="companies">
-                            <option value="" disabled selected>Please Select Company</option>
 
-                            <option value="" selected>No Company</option>
-                        </select>
-                    </div>
                     <div class="mb-3">
-                        <label asp-for="GlobalAccessLevelId" class="form-label">Access Level</label>
-                        <select class="form-select" asp-for="GlobalAccessLevelId" asp-items="GlobalAccessLevelsList">
-                            <option value="" disabled selected>Select Access Level</option>
-
-                            <option value="" selected>No Access</option>
-                        </select>
-                    </div>
-                   
-                    <div class="form-group">
-                        <label asp-for="Password" class="control-label"></label>
-                        <input asp-for="Password" class="form-control" />
+                        <label asp-for="Password" class="form-label"></label>
+                        <input asp-for="Password" class="form-control" placeholder="Enter a strong password" />
                         <span asp-validation-for="Password" class="text-danger"></span>
                     </div>
-                    <div class="form-group">
-                        <label asp-for="ConfirmPassword" class="control-label"></label>
-                        <input asp-for="ConfirmPassword" class="form-control" />
+
+                    <div class="mb-3">
+                        <label asp-for="ConfirmPassword" class="form-label"></label>
+                        <input asp-for="ConfirmPassword" class="form-control" placeholder="Re-enter your password" />
                         <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Add</button>
-                    </div>
-                </form>
-            </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Member</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-<partial name="_ValidationScriptsPartial">
-<script>
-    $(document).ready(function () {
-        $(document).on("submit", "#addMemberForm", function (event) {
-            event.preventDefault();
 
-            $.ajax({
-                url: "/Member/InsertMember",
-                type: "POST",
-                data: $(this).serialize(),
-                success: function (response) {
-                    if (!response.success) {
-                        $("#addMemberModal .modal-body").html($(response).find(".modal-body").html());
-                    } else {
-                        console.log("ok");
-                        $("#addMemberModal").modal("hide");
 
-                        setTimeout(function () {
-                            location.reload();
-                        }, 500); 
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error("AJAX Error:", error);
-                    alert("Something went wrong!");
-                }
-            });
-        });
-    });
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
+
+
 

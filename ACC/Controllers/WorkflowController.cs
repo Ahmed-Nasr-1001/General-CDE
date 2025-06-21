@@ -103,25 +103,54 @@ namespace ACC.Controllers
             return View("NewWorkflow", vm);
         }
 
+
+
         [HttpPost]
         public async Task<IActionResult> CreateTemplate(WorkflowTemplateViewModel vm)
         {
+           
+
+            if (!ModelState.IsValid)
+            {
+                
+                vm.ReviewersType = Enum.GetValues(typeof(ReviewersType)).Cast<ReviewersType>().ToList();
+                vm.AllFolders = _folderService.GetFolderTree();
+                vm.ProjectPositions = _userRoleService.AllProjectPositions();
+
+                var ReviewersList = _userRoleService.GetAll()
+                    .Where(i => i.ProjectId == vm.proId && i.Role.ProjectPosition == true)
+                    .ToList();
+
+                vm.Reviewers = ReviewersList.Select(item => new ProjectReviewersVM
+                {
+                    UserId = item.UserId,
+                    RoleId = item.RoleId,
+                    UserName = item.User.UserName,
+                    RoleName = item.Role.Name
+                }).ToList();
+
+                ViewBag.MultiReviwerOptions = Enum_Helper.GetEnumSelectListWithDisplayNames<MultiReviewerOptions>();
+                ViewBag.Id = vm.proId;
+
+                return View("NewWorkflow", vm);
+            }
+
             var template = new WorkflowTemplate
             {
-               
+
                 ProjectId = vm.proId,
                 Name = vm.Name,
                 Description = vm.Description,
                 StepCount = vm.Steps.Count,
                 CopyApprovedFiles = vm.CopyApprovedFiles,
                 DestinationFolderId = vm.SelectedDistFolderId
-                
+
             };
 
             foreach (var step in vm.Steps)
             {
-             
-                
+
+
 
                 var stepTemplate = new WorkflowStepTemplate
                 {
@@ -137,7 +166,7 @@ namespace ACC.Controllers
                 {
                     stepTemplate.MultiReviewerOptions = MultiReviewerOptions.EveryOne;
                 }
-                else
+                else 
                 {
                     stepTemplate.MultiReviewerOptions = MultiReviewerOptions.MinimumNumber;
                 }
@@ -153,7 +182,7 @@ namespace ACC.Controllers
             for (int i = 0; i < vm.Steps.Count; i++)
             {
                 var step = vm.Steps[i];
-                var savedStep = savedSteps[i]; 
+                var savedStep = savedSteps[i];
 
                 foreach (var userId in step.AssignedUsersIds)
                 {
@@ -171,7 +200,7 @@ namespace ACC.Controllers
                 }
             }
 
-            
+
 
             _workflowStepsUsersService.Save();
 
@@ -179,7 +208,7 @@ namespace ACC.Controllers
             return RedirectToAction("Index", new { id = vm.proId });
         }
 
-       [HttpGet]
+        [HttpGet]
        public async Task<IActionResult> EditWorkflow(int id)
         {
             var workflowFromDB = _workflowRepository.GetById(id);
@@ -311,7 +340,7 @@ namespace ACC.Controllers
                     var step = StepsFromVM[i];
                     var savedStep = stepsFromDB[i];
 
-                    var OldStepUsers = _reviewStepUsersService.GetByStepId(savedStep.Id);
+                    var OldStepUsers = _reviewStepUsersService.GetByStepId(savedStep.Id , review.Id);
 
                     foreach (var item in OldStepUsers)
                     {
@@ -344,7 +373,14 @@ namespace ACC.Controllers
 
             return RedirectToAction("Index", new { id = vm.proId });
         }
+        [AcceptVerbs("Get", "Post")]
+        public IActionResult IsNameUnique(string name, int proId)
+        {
+            var exists = _workflowRepository.GetAll()
+                .Any(w => w.Name.ToLower() == name.ToLower() && w.ProjectId == proId);
 
+            return Json(!exists); 
+        }
 
 
     }

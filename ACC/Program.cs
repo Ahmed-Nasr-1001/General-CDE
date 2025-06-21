@@ -101,7 +101,6 @@ namespace ACC
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
 
-
             #endregion
 
 

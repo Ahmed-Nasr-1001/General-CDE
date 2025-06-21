@@ -37,7 +37,6 @@
                 <thead>
                     <tr>
                         <th>Name</th>
-                        <th>Status</th>
                         <th>Company</th>
                         <th>Access Level</th>
                         <th>Added On</th>
@@ -49,7 +48,6 @@
                     {
                         <tr id="row-@member.Id" class="member-row" data-id="@member.Id">
                             <td>@member.Name</td>
-                            <td>@member.Status</td>
                             <td>@member.Company</td>
                             <td>@member.GlobalAccessLevel</td>
                             <td>@member.AddedOn</td>
@@ -100,6 +98,11 @@
 
     <script>
         $(document).ready(function () {
+          
+
+            // Your original code unchanged below
+            // Your original code unchanged below
+            // Your original code unchanged below
             toastr.options = {
                 "positionClass": "toast-top-right",
                 "timeOut": "3000"
@@ -151,11 +154,12 @@
                     return;
                 }
 
-                var member = {
-                    email: $("#memberEmail").val(),
-                    globalAccessLevelID: $("#memberRole").val() || null,
-                    companyId: $("#memberCompany").val() || null,
-                    status: $("#memberStatus").val(),
+                 var member = {
+ email: $("#memberEmail").val(),
+ globalAccessLevelID: $("#memberRole").val() || null,
+ companyId: $("#memberCompany").val() || null,
+               
+                  
                 };
 
                 $.ajax({
@@ -189,20 +193,21 @@
             $(document).on("click", ".delete-btn", function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-                var memberId = $(this).data("id");
-                $(this).closest(".action-menu").hide();
-
-                $.ajax({
-                    url: "/Member/Delete/" + memberId,
-                    type: "POST",
-                    success: function () {
-                        $("#row-" + memberId).remove();
-                        toastr.success("Member deleted successfully!");
-                        $("#memberDetailsPanel").removeClass("show");
-                    },
-                    error: function () {
-                        toastr.error("Failed to delete member.");
-                    }
+                
+                    $.ajax({
+                        url: "/Member/Delete/" + memberId,
+                        type: "POST",
+                        success: function () {
+                            $("#row-" + memberId).remove();
+                            toastr.success("Member deleted successfully!");
+                            $("#memberDetailsPanel").removeClass("show");
+                        },
+                        error: function () {
+                            toastr.error("Failed to delete member.");
+                        }
+                    });
+                
+                });
                 });
             });
         });
