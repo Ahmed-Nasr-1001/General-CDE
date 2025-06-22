@@ -63,5 +63,11 @@ namespace ACC.Services
                 })
                 .ToList();
         }
+
+        public string FolderName(int folderId)
+        {
+            return _context.Folders.FirstOrDefault(f => f.Id == folderId).Name;
+                
+        }
     }
 }

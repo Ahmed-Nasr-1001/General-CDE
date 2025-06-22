@@ -1,0 +1,73 @@
+﻿@model ACC.ViewModels.WorkflowVM.DetailsVm
+@{
+    Layout = "_ProjectLayout";
+}
+
+<div class="container mt-4">
+    <h2>Workflow Template Details</h2>
+
+    <div class="mb-4">
+        <h5>Name:</h5>
+        <p>@Model.Name</p>
+
+        <h5>Description:</h5>
+        <p>@Model.Description</p>
+    </div>
+
+    <hr />
+    <h4>Steps</h4>
+
+    @for (int i = 0; i < Model.Steps.Count; i++)
+    {
+        var step = Model.Steps[i];
+        <div class="card mb-3">
+            <div class="card-header bg-light">
+                <strong>Step @(i + 1): @(i == 0 ? "Initial Review" : "Final Approval")</strong>
+            </div>
+            <div class="card-body">
+                <p><strong>Role:</strong> @step.selectedPosition</p>
+                <p><strong>Reviewer Type:</strong> @step.SelectedReviewersType</p>
+
+                @if (step.SelectedReviewersType == "Single")
+                {
+                    <p><strong>Reviewer:</strong> @step.AssignedUsersNames?.FirstOrDefault()</p>
+                }
+                else if (step.SelectedReviewersType == "Multiple" || step.SelectedReviewersType == "1")
+                {
+                    <p><strong>Reviewers:</strong></p>
+                    <ul>
+                        @foreach (var userId in step.AssignedUsersNames ?? new List<string>())
+                        {
+                            <li>@userId</li>
+                        }
+                    </ul>
+
+                    @if (!string.IsNullOrEmpty(step.SelectedOption))
+                    {
+                        <p><strong>Selected Option:</strong> @step.SelectedOption</p>
+                    }
+
+                    @if (step.MinReviewers.HasValue)
+                    {
+                        <p><strong>Minimum Reviewers:</strong> @step.MinReviewers</p>
+                    }
+                }
+            </div>
+        </div>
+    }
+
+    <hr />
+    <h4>Copy Approved Files</h4>
+    <p>@(Model.CopyApprovedFiles ? "Yes" : "No")</p>
+
+    @if (Model.CopyApprovedFiles)
+    {
+        <div class="mt-3">
+            <h5>Destination Folder:</h5>
+            <!-- Replace below with actual folder name/ID when available -->
+            <p>@Model.SelectedDistFolderName</p>
+        </div>
+    }
+
+    <a asp-controller="Workflow" asp-action="Index" asp-route-id="@ViewBag.Id.ToString()" class="btn btn-secondary mt-3">Back</a>
+</div>

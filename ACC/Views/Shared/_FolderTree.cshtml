@@ -1,18 +1,194 @@
 ﻿@using ACC.ViewModels.WorkflowVM
 @model List<FolderVM>
 
-<ul>
+<style>
+    .tree {
+        list-style: none;
+        padding: 0;
+        font-family: system-ui;
+    }
+
+        .tree ul {
+            list-style: none;
+            padding-left: 20px;
+            margin: 4px 0;
+        }
+
+        .tree li {
+            margin: 4px 0;
+            position: relative;
+        }
+
+            .tree li::before {
+                content: '';
+                position: absolute;
+                left: -14px;
+                top: 16px;
+                width: 12px;
+                height: 2px;
+                background-color: #e5e7eb;
+            }
+
+        .tree input[type="checkbox"] {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #d1d5db;
+            border-radius: 50%;
+            margin-right: 8px;
+            position: relative;
+            cursor: pointer;
+        }
+
+            .tree input[type="checkbox"]:checked {
+                background: #3b82f6;
+                border-color: #3b82f6;
+            }
+
+                .tree input[type="checkbox"]:checked::after {
+                    content: '✓';
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    color: white;
+                    font-size: 10px;
+                    font-weight: bold;
+                }
+
+    .folder-label {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+        font-weight: 600;
+        color: #374151;
+    }
+
+        .folder-label:hover {
+            background-color: #f8fafc;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .folder-label:before {
+            content: '📁';
+            margin-right: 8px;
+            font-size: 16px;
+        }
+
+    input:checked + .folder-label {
+        background-color: #eff6ff;
+        border: 2px solid #3b82f6;
+        color: #1e40af;
+    }
+
+        input:checked + .folder-label:before {
+            content: '📂';
+        }
+
+    .collapsed {
+        display: none;
+    }
+
+    .toggle-btn {
+        background: none;
+        border: none;
+        font-size: 12px;
+        margin-right: 4px;
+        cursor: pointer;
+        color: #6b7280;
+    }
+
+        .toggle-btn:hover {
+            color: #374151;
+        }
+
+    .tree > li {
+        border-bottom: 1px solid #f3f4f6;
+        padding-bottom: 8px;
+        margin-bottom: 8px;
+    }
+
+        .tree > li:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+</style>
+
+<script>
+    function toggleFolder(btn) {
+        const li = btn.closest('li');
+        const children = li.querySelector(':scope > ul');
+        const label = li.querySelector('.folder-label');
+
+        if (children) {
+            children.classList.toggle('collapsed');
+            btn.textContent = children.classList.contains('collapsed') ? '▶' : '▼';
+        }
+    }
+
+    function toggleParentFolders(checkbox) {
+        const li = checkbox.closest('li');
+        const childCheckboxes = li.querySelectorAll('input[type="checkbox"]');
+
+        childCheckboxes.forEach(cb => {
+            if (cb !== checkbox) {
+                cb.checked = checkbox.checked;
+            }
+        });
+    }
+
+    function updateParentState(checkbox) {
+        let parentLi = checkbox.closest('li').parentElement.closest('li');
+
+        while (parentLi) {
+            const parentCheckbox = parentLi.querySelector(':scope > input[type="checkbox"]');
+            if (parentCheckbox) {
+                const siblings = parentLi.querySelectorAll(':scope ul input[type="checkbox"]');
+                const checkedSiblings = parentLi.querySelectorAll(':scope ul input[type="checkbox"]:checked');
+
+                if (checkedSiblings.length === 0) {
+                    parentCheckbox.checked = false;
+                    parentCheckbox.indeterminate = false;
+                } else if (checkedSiblings.length === siblings.length) {
+                    parentCheckbox.checked = true;
+                    parentCheckbox.indeterminate = false;
+                } else {
+                    parentCheckbox.checked = false;
+                    parentCheckbox.indeterminate = true;
+                }
+            }
+            parentLi = parentLi.parentElement.closest('li');
+        }
+    }
+
+    document.addEventListener('change', function(e) {
+        if (e.target.type === 'checkbox') {
+            toggleParentFolders(e.target);
+            updateParentState(e.target);
+        }
+    });
+</script>
+
+<ul class="tree">
     @foreach (var folder in Model)
     {
         <li>
-            <input type="radio" name="SelectedDistFolderId" value="@folder.Id" id="folder_@folder.Id" />
-            <label for="folder_@folder.Id"><strong>@folder.Name</strong></label>
-
             @if (folder.Children != null && folder.Children.Any())
             {
-                @Html.Partial("_FolderTree", folder.Children)
+                <button type="button" class="toggle-btn" onclick="toggleFolder(this)">▼</button>
+            }
+            <input type="checkbox" name="SelectedFolderIds" value="@folder.Id" id="folder_@folder.Id" />
+            <label for="folder_@folder.Id" class="folder-label">@folder.Name</label>
+            @if (folder.Children != null && folder.Children.Any())
+            {
+                <ul>
+                    @Html.Partial("_FolderTree", folder.Children)
+                </ul>
             }
         </li>
     }
 </ul>
-

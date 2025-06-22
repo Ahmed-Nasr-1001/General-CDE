@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250621181449_init")]
+    [Migration("20250622114101_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -898,6 +898,10 @@ namespace DataLayer.Migrations
 
                     b.Property<int>("WorkflowTemplateId")
                         .HasColumnType("int");
+
+                    b.Property<string>("selectedPositionId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

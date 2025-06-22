@@ -3,6 +3,7 @@ using ACC.ViewModels.WorkflowVM;
 using BusinessLogic.Repository.RepositoryClasses;
 using BusinessLogic.Repository.RepositoryInterfaces;
 using DataLayer.Models;
+using DataLayer.Models.ClassHelper;
 using DataLayer.Models.Enums;
 using Helpers;
 using Microsoft.AspNetCore.Identity;
@@ -15,6 +16,7 @@ namespace ACC.Controllers
     public class WorkflowController : Controller
     {
         private readonly IWorkflowRepository _workflowRepository;
+        private readonly IReviewRepository _reviewRepository;
         private readonly IWorkFlowStepRepository _workFlowStepRepository;
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly WorkflowStepsUsersService _workflowStepsUsersService;
@@ -22,9 +24,10 @@ namespace ACC.Controllers
         private readonly FolderService _folderService;
         private readonly UserRoleService _userRoleService;
 
-        public WorkflowController(IWorkflowRepository workflowRepository , IWorkFlowStepRepository workFlowStepRepository, UserManager<ApplicationUser> userManager , WorkflowStepsUsersService workflowStepsUsersService, ReviewStepUsersService reviewStepUsersService , FolderService folderService , UserRoleService userRoleService)
+        public WorkflowController(IWorkflowRepository workflowRepository, IReviewRepository reviewRepository , IWorkFlowStepRepository workFlowStepRepository, UserManager<ApplicationUser> userManager , WorkflowStepsUsersService workflowStepsUsersService, ReviewStepUsersService reviewStepUsersService , FolderService folderService , UserRoleService userRoleService)
         {
             _workflowRepository = workflowRepository;
+            _reviewRepository = reviewRepository;
             _workFlowStepRepository = workFlowStepRepository;
             UserManager = userManager;
             _workflowStepsUsersService = workflowStepsUsersService;
@@ -156,6 +159,7 @@ namespace ACC.Controllers
                 {
                     StepOrder = step.StepOrder,
                     TimeAllowed = step.TimeAllowedInDays,
+                    selectedPositionId =step.selectedPositionId,
                     ReviewersType = step.SelectedReviewersType,
                     MinReviewers = step.MinReviewers,
 
@@ -209,15 +213,104 @@ namespace ACC.Controllers
         }
 
         [HttpGet]
-       public async Task<IActionResult> EditWorkflow(int id)
+        public async Task<IActionResult> WorkflowDetails(int id)
         {
             var workflowFromDB = _workflowRepository.GetById(id);
+
+
             if (workflowFromDB == null)
             {
                 return NotFound();
             }
 
-            var vm = new WorkflowTemplateViewModel
+            
+
+            var vm = new DetailsVm
+            {
+                Id = workflowFromDB.Id,
+                proId = workflowFromDB.ProjectId,
+                Name = workflowFromDB.Name,
+                Description = workflowFromDB.Description,
+                CopyApprovedFiles = workflowFromDB.CopyApprovedFiles,
+                SelectedDistFolderName = workflowFromDB.DestinationFolderId.HasValue
+                                         ? _folderService.FolderName(workflowFromDB.DestinationFolderId.Value)
+                                         : null,
+
+                ReviewersType = Enum.GetValues(typeof(ReviewersType)).Cast<ReviewersType>().ToList(),
+                AllFolders = _folderService.GetFolderTree(),
+                ProjectPositions = _userRoleService.AllProjectPositions(),
+                Reviewers = _userRoleService.GetAll().Where(i => i.ProjectId == workflowFromDB.ProjectId).Select(i => new ProjectReviewersVM
+                {
+                    UserId = i.UserId,
+                    RoleId = i.RoleId,
+                    UserName = i.User.UserName,
+                    RoleName = i.Role.Name
+                }).ToList(),
+
+
+
+
+
+
+            };
+
+            var stepTemplates = workflowFromDB.Steps.OrderBy(s => s.StepOrder).ToList();
+            foreach (var stepTemplate in stepTemplates)
+            {
+                var assignedUsers = _workflowStepsUsersService.GetStepUsers(stepTemplate.Id);
+
+
+                var stepVM = new StepDetails
+                {
+                    StepOrder = stepTemplate.StepOrder,
+                    TimeAllowedInDays = stepTemplate.TimeAllowed,
+                    SelectedReviewersType = stepTemplate.ReviewersType.ToString(),
+                    selectedPosition = stepTemplate.selectedPositionId,
+                    MinReviewers = stepTemplate.MinReviewers,
+                    SelectedOption = stepTemplate.MultiReviewerOptions == MultiReviewerOptions.EveryOne
+                                     ? "Every key reviewer must review this step"
+                                     : "Minimum number of reviewers",
+                    
+                };
+                foreach (var assignedUser in assignedUsers)
+                {
+                    var user = await UserManager.FindByIdAsync(assignedUser);
+                    var name = user.UserName;
+                    stepVM.AssignedUsersNames.Add(name);
+                }
+
+                vm.Steps.Add(stepVM);
+            }
+
+
+
+            ViewBag.MultiReviwerOptions = Enum_Helper.GetEnumSelectListWithDisplayNames<MultiReviewerOptions>();
+            ViewBag.Id = workflowFromDB.ProjectId;
+            ViewBag.wfId = id;
+
+            return View("WorkflowDetails", vm);
+        }
+        
+
+       [HttpGet]
+       public async Task<IActionResult> EditWorkflow(int id)
+        {
+            var workflowFromDB = _workflowRepository.GetById(id);
+
+
+            if (workflowFromDB == null)
+            {
+                return NotFound();
+            }
+
+            if (workflowFromDB.Reviews != null && workflowFromDB.Reviews.Any())
+            {
+                TempData["ErrorMessage"] = "Can not edit this workflow because it is already in use.";
+                return RedirectToAction("Index", new { id = workflowFromDB.ProjectId });
+
+            }
+
+            var vm = new EditWorkflowVM
             {
                 Id= workflowFromDB.Id,
                 proId = workflowFromDB.ProjectId,
@@ -227,14 +320,19 @@ namespace ACC.Controllers
                 SelectedDistFolderId = workflowFromDB.DestinationFolderId,
                 ReviewersType = Enum.GetValues(typeof(ReviewersType)).Cast<ReviewersType>().ToList(),
                 AllFolders = _folderService.GetFolderTree(),
+                ProjectPositions = _userRoleService.AllProjectPositions(),
                 Reviewers = _userRoleService.GetAll().Where(i => i.ProjectId == workflowFromDB.ProjectId).Select(i => new ProjectReviewersVM
                 {
                     UserId = i.UserId,
                     RoleId = i.RoleId,
                     UserName = i.User.UserName,
                     RoleName = i.Role.Name
-                }).ToList()
+                }).ToList(),
 
+
+
+
+              
 
             };
 
@@ -247,11 +345,11 @@ namespace ACC.Controllers
                     StepOrder = stepTemplate.StepOrder,
                     TimeAllowedInDays = stepTemplate.TimeAllowed,
                     SelectedReviewersType = stepTemplate.ReviewersType,
+                    selectedPositionId = stepTemplate.selectedPositionId,
                     MinReviewers = stepTemplate.MinReviewers,
                     SelectedOption = stepTemplate.MultiReviewerOptions == MultiReviewerOptions.EveryOne
                                      ? "Every key reviewer must review this step"
                                      : "Minimum number of reviewers",
-                    AssignedUsersIds = assignedUsers.Select(u => u.UserId).ToList()
                 };
 
                 vm.Steps.Add(stepVM);
@@ -259,22 +357,51 @@ namespace ACC.Controllers
 
             ViewBag.MultiReviwerOptions = Enum_Helper.GetEnumSelectListWithDisplayNames<MultiReviewerOptions>();
             ViewBag.Id = workflowFromDB.ProjectId;
+            ViewBag.wfId = id;
 
             return View("EditWorkflow", vm);
         }
 
         [HttpPost]
-        public async Task<IActionResult> SaveWorkflow(WorkflowTemplateViewModel vm)
+        public async Task<IActionResult> SaveEdit(EditWorkflowVM vm , int workflowId)
         {
-            var template = _workflowRepository.GetById((int)vm.Id);
+           
+            if (!ModelState.IsValid)
+            {
+                vm.ReviewersType = Enum.GetValues(typeof(ReviewersType)).Cast<ReviewersType>().ToList();
+                vm.AllFolders = _folderService.GetFolderTree();
+                vm.ProjectPositions = _userRoleService.AllProjectPositions();
+                vm.Reviewers = _userRoleService.GetAll().Where(i => i.ProjectId == vm.proId).Select(i => new ProjectReviewersVM
+                {
+                    UserId = i.UserId,
+                    RoleId = i.RoleId,
+                    UserName = i.User.UserName,
+                    RoleName = i.Role.Name
+                }).ToList();
+
+                ViewBag.MultiReviwerOptions = Enum_Helper.GetEnumSelectListWithDisplayNames<MultiReviewerOptions>();
+                ViewBag.Id = vm.proId;
+                ViewBag.wfId = workflowId;
+
+                return View("EditWorkflow", vm);
+            }
+
+            var template = _workflowRepository.GetById(workflowId);
 
             if (template == null)
                 return NotFound();
 
+         
             template.Name = vm.Name;
             template.Description = vm.Description;
             template.CopyApprovedFiles = vm.CopyApprovedFiles;
-            template.DestinationFolderId = vm.SelectedDistFolderId;
+            if (vm.SelectedDistFolderId != null)
+            {
+                template.DestinationFolderId = vm.SelectedDistFolderId;
+            }
+
+            _workflowRepository.Update(template);
+            _workflowRepository.Save();
 
             var StepsFromVM = vm.Steps.OrderBy(s => s.StepOrder).ToList(); 
             var stepsFromDB = template.Steps.OrderBy(s => s.StepOrder).ToList();
@@ -285,10 +412,14 @@ namespace ACC.Controllers
                 stepsFromDB[i].StepOrder = StepFromVM.StepOrder;
                 stepsFromDB[i].TimeAllowed = StepFromVM.TimeAllowedInDays;
                 stepsFromDB[i].ReviewersType = StepFromVM.SelectedReviewersType;
+                stepsFromDB[i].selectedPositionId = StepFromVM.selectedPositionId;
                 stepsFromDB[i].MinReviewers = StepFromVM.MinReviewers;
-                stepsFromDB[i].MultiReviewerOptions = StepFromVM.SelectedOption == "Every key reviewer must review this step"
-                                            ? MultiReviewerOptions.EveryOne
-                                            : MultiReviewerOptions.MinimumNumber;
+
+                _workFlowStepRepository.Update(stepsFromDB[i]);
+                _workFlowStepRepository.Save();
+
+
+
             }
 
         
@@ -330,42 +461,47 @@ namespace ACC.Controllers
 
             _workflowStepsUsersService.Save();
 
-            var reviews = template.Reviews;
-            foreach (var review in reviews)
+            bool hasReviews = _reviewRepository.GetAll().Any(i => i.WorkflowTemplateId == template.Id);
+            var reviews = _reviewRepository.GetAll().Where(i => i.WorkflowTemplateId == template.Id);
+            if (hasReviews== false)
             {
 
-
-                for (int i = 0; i < vm.Steps.Count; i++)
-                {
-                    var step = StepsFromVM[i];
-                    var savedStep = stepsFromDB[i];
-
-                    var OldStepUsers = _reviewStepUsersService.GetByStepId(savedStep.Id , review.Id);
-
-                    foreach (var item in OldStepUsers)
-                    {
-
-                        _reviewStepUsersService.Delete(item);
-
-                    }
-                    _reviewStepUsersService.Save();
-                    foreach (var userId in step.AssignedUsersIds)
-                    {
-                        var user = await UserManager.FindByIdAsync(userId);
-                        if (user != null)
-                        {
-                            ReviewStepUser ReviewStepUser = new ReviewStepUser()
-                            {
-                                StepId = savedStep.Id,
-                                UserId = user.Id,
-                                ReviewId = review.Id
-                            };
-
-                            _reviewStepUsersService.Insert(ReviewStepUser);
-                        }
-                    }
-                }
-
+                  foreach (var review in reviews)
+                  {
+                 
+                 
+                      for (int i = 0; i < vm.Steps.Count; i++)
+                      {
+                          var step = StepsFromVM[i];
+                          var savedStep = stepsFromDB[i];
+                 
+                          var OldStepUsers = _reviewStepUsersService.GetByStepId(savedStep.Id , review.Id);
+                 
+                          foreach (var item in OldStepUsers)
+                          {
+                 
+                              _reviewStepUsersService.Delete(item);
+                 
+                          }
+                          _reviewStepUsersService.Save();
+                          foreach (var userId in step.AssignedUsersIds)
+                          {
+                              var user = await UserManager.FindByIdAsync(userId);
+                              if (user != null)
+                              {
+                                  ReviewStepUser ReviewStepUser = new ReviewStepUser()
+                                  {
+                                      StepId = savedStep.Id,
+                                      UserId = user.Id,
+                                      ReviewId = review.Id
+                                  };
+                 
+                                  _reviewStepUsersService.Insert(ReviewStepUser);
+                              }
+                          }
+                      }
+                 
+                  }
 
             }
 
@@ -373,6 +509,40 @@ namespace ACC.Controllers
 
             return RedirectToAction("Index", new { id = vm.proId });
         }
+
+        public IActionResult Delete (int id)
+        {
+            var workflow = _workflowRepository.GetById(id);
+            int proId = workflow.ProjectId;
+            bool hasReviews = _reviewRepository.GetAll().Any(i => i.WorkflowTemplateId == id);
+            if (hasReviews == true)
+            {
+                TempData["ErrorMessage"] = "Can not delete this workflow because it is already in use.";
+                return RedirectToAction("Index", new { id = proId });
+            }
+
+           
+
+            var steps = _workFlowStepRepository.GetAll().Where(i => i.WorkflowTemplateId == workflow.Id);
+            foreach(var item in steps)
+            {
+                var stepusers = _workflowStepsUsersService.GetAll().Where(i => i.StepId == item.Id);
+                foreach (var element in stepusers)
+                {
+                    _workflowStepsUsersService.Delete(element);
+                }
+                _workflowStepsUsersService.Save();
+                _workFlowStepRepository.Delete(item);
+            }
+            _workFlowStepRepository.Save();
+
+            _workflowRepository.Delete(workflow);
+            _workflowRepository.Save();
+
+            return RedirectToAction("Index", new { id = proId });
+
+        }
+
         [AcceptVerbs("Get", "Post")]
         public IActionResult IsNameUnique(string name, int proId)
         {
@@ -381,6 +551,20 @@ namespace ACC.Controllers
 
             return Json(!exists); 
         }
+
+        [AcceptVerbs("Get", "Post")]
+        public IActionResult IsNameAvailable(string name, int Id, int proId)
+       {
+            var exists = _workflowRepository.GetAll()
+                .Any(w => w.Id != Id && w.Name.ToLower() == name.ToLower() && w.ProjectId == proId);
+            if (exists==true)
+            {
+            return Json(false);
+
+            }
+            return Json(true);
+        }
+
 
 
     }

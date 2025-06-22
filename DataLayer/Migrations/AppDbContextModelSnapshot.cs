@@ -896,6 +896,10 @@ namespace DataLayer.Migrations
                     b.Property<int>("WorkflowTemplateId")
                         .HasColumnType("int");
 
+                    b.Property<string>("selectedPositionId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ApplicationUserId");

@@ -472,6 +472,7 @@ namespace DataLayer.Migrations
                     WorkflowTemplateId = table.Column<int>(type: "int", nullable: false),
                     StepOrder = table.Column<int>(type: "int", nullable: true),
                     TimeAllowed = table.Column<int>(type: "int", nullable: false),
+                    selectedPositionId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ReviewersType = table.Column<int>(type: "int", nullable: true),
                     MinReviewers = table.Column<int>(type: "int", nullable: true),
                     MultiReviewerOptions = table.Column<int>(type: "int", nullable: true),
