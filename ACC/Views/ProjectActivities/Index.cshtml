@@ -154,15 +154,55 @@
             </tbody>
         </table>
 
-        <div class="pagination">
-            @for (int i = 1; i <= ViewBag.TotalPages; i++)
-            {
-                <a href="/ProjectActivities/Index?page=@i&activityType=@ViewBag.ActivityTypeFilter&startDate=@ViewBag.StartDateFilter&endDate=@ViewBag.EndDateFilter"
-                   class="btn @(ViewBag.CurrentPage == i ? "btn-primary" : "btn-outline-primary")">
-                    @i
-                </a>
-            }
+        <div class="d-flex justify-content-center align-items-center mt-4">
+            <nav aria-label="Project Activities Pagination">
+                <ul class="pagination flex-wrap gap-1">
+                    <!-- Previous -->
+                    <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link"
+                           href="@Url.Action("Index", "ProjectActivities", new {
+                       page = ViewBag.CurrentPage - 1,
+                       activityType = ViewBag.ActivityTypeFilter,
+                       startDate = ViewBag.StartDateFilter,
+                       endDate = ViewBag.EndDateFilter
+                   })">
+                            Previous
+                        </a>
+                    </li>
+
+                    <!-- Page Numbers -->
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link"
+                               href="@Url.Action("Index", "ProjectActivities", new {
+                           page = i,
+                           activityType = ViewBag.ActivityTypeFilter,
+                           startDate = ViewBag.StartDateFilter,
+                           endDate = ViewBag.EndDateFilter
+                       })">
+                                @i
+                            </a>
+                        </li>
+                    }
+
+                    <!-- Next -->
+                    <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                        <a class="page-link"
+                           href="@Url.Action("Index", "ProjectActivities", new {
+                       page = ViewBag.CurrentPage + 1,
+                       activityType = ViewBag.ActivityTypeFilter,
+                       startDate = ViewBag.StartDateFilter,
+                       endDate = ViewBag.EndDateFilter
+                   })">
+                            Next
+                        </a>
+                    </li>
+                </ul>
+            </nav>
         </div>
+
+
 
     </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

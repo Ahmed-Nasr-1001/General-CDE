@@ -6,11 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DataLayer.Migrations
 {
     /// <inheritdoc />
-<<<<<<<< HEAD:DataLayer/Migrations/20250621200131_intail.cs
-    public partial class intail : Migration
-========
-    public partial class init : Migration
->>>>>>>> 770097ffce65cfc737188c1a5b37ab9dec40d8b7:DataLayer/Migrations/20250621181449_init.cs
+    public partial class start : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -75,9 +75,13 @@
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCompanyModal">+ Add Companies</button>
                         }
         
-        <div class="d-flex justify-content-between my-3">
+        <div class="d-flex justify-content-end my-3">
             <div class="d-flex">
-                <input type="text" id="searchInput" class="form-control me-2" placeholder="Search by name, email or trade" value="@ViewBag.SearchTerm">
+                <form method="get" asp-controller="ProjectCompany" asp-action="Index" class="d-flex mb-6">
+                    <input type="hidden" name="id" value="@ViewBag.Id" />
+                    <input type="text" name="searchTerm" class="form-control me-2" placeholder="Search by Name" value="@ViewBag.SearchTerm" />
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </form>
             </div>
         </div>
 
@@ -131,16 +135,32 @@
             </tbody>
         </table>
 
-        <!-- Pagination -->
-        <div class="pagination" id="pagination">
-            @for (int i = 1; i <= ViewBag.TotalPages; i++)
-            {
-                <a href="@Url.Action("Index", new { id = ViewBag.Id, page = i, searchTerm = ViewBag.SearchTerm })"
-                   class="btn @(ViewBag.CurrentPage == i ? "btn-primary" : "btn-outline-primary")">
-                    @i
-                </a>
-            }
+        <!-- Pagination Controls (Classic, No AJAX) -->
+        <div class="d-flex justify-content-center align-items-center mt-3">
+            <nav>
+                <ul class="pagination">
+                    <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link"
+                           href="@Url.Action("Index", "ProjectCompany", new { id = ViewBag.Id, page = ViewBag.CurrentPage - 1, searchTerm = ViewBag.SearchTerm })">Previous</a>
+                    </li>
+
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link"
+                               href="@Url.Action("Index", "ProjectCompany", new { id = ViewBag.Id, page = i, searchTerm = ViewBag.SearchTerm })">@i</a>
+                        </li>
+                    }
+
+                    <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                        <a class="page-link"
+                           href="@Url.Action("Index", "ProjectCompany", new { id = ViewBag.Id, page = ViewBag.CurrentPage + 1, searchTerm = ViewBag.SearchTerm })">Next</a>
+                    </li>
+                </ul>
+            </nav>
         </div>
+
+
     </div>
 
     <!-- Right-Side Panel -->
@@ -182,31 +202,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function () {
-            // Search functionality (server-side)
-            $('#searchInput').on('keyup', function () {
-                var searchText = $(this).val();
-                var projectId = @ViewBag.Id;
-
-                $.ajax({
-                    url: '/ProjectCompany/Index',
-                    type: 'GET',
-                    data: {
-                        id: projectId,
-                        page: 1, // Reset to first page on search
-                        searchTerm: searchText
-                    },
-                    success: function (data) {
-                        // Update table body
-                        $('#companyTableBody').html($(data).find('#companyTableBody').html());
-                        // Update pagination
-                        $('#pagination').html($(data).find('#pagination').html());
-                    },
-                    error: function () {
-                        alert('Error occurred while searching.');
-                    }
-                });
-            });
-
+           
             // Existing toggle-menu logic
             $(".toggle-menu").click(function (event) {
                 event.stopPropagation();

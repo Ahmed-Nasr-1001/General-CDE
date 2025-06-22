@@ -6,9 +6,10 @@
 	Layout = "_Layout";
 	var CurrentUserId = UserManager.GetUserId(User);
 	int pageSize = 5;
-	int currentPage = ViewBag.CurrentPage;
-	int totalPages = ViewBag.totalPages;
-	bool showArchived = ViewBag.ShowArchived;
+	int currentPage = Convert.ToInt32(ViewBag.CurrentPage ?? 1);
+	int totalPages = Convert.ToInt32(ViewBag.TotalPages ?? 1);
+	bool showArchived = ViewBag.ShowArchived != null && (bool)ViewBag.ShowArchived;
+	int totalItems = Convert.ToInt32(ViewBag.TotalItems ?? Model.Count);
 	string srchText = Context.Request.Query["srchText"];
 }
 

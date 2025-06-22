@@ -44,35 +44,49 @@ namespace ACC.Controllers
 
         public IActionResult Index(int ProjectId, int page = 1, string search = "", int pageSize = 5)
         {
-            // Get all user IDs assigned to this project
+            // 1. Get all user IDs assigned to this project
             var userIdsInProject = _userRoleService.GetMembers(ProjectId);
 
-            // Build the query
+            if (userIdsInProject == null || !userIdsInProject.Any())
+            {
+                // No members found for this project
+                ViewBag.TotalItems = 0;
+                ViewBag.PageSize = pageSize;
+                ViewBag.Page = page;
+                ViewBag.Search = search;
+                ViewBag.ProjId = ProjectId;
+                ViewBag.Id = ProjectId;
+
+                return View(new List<ProjectMembersVM>());
+            }
+
+            // 2. Build base query for users in the project
             var query = _userManager.Users
                 .Include(u => u.Company)
                 .Include(u => u.UserRoles)
                 .Where(u => userIdsInProject.Contains(u.Id))
                 .AsQueryable();
 
-            // Apply search filter (by name or email)
+            // 3. Apply search filter (case-insensitive)
             if (!string.IsNullOrWhiteSpace(search))
             {
-                query = query.Where(m =>
-                    m.UserName.Contains(search) ||
-                    m.Email.Contains(search));
+                string loweredSearch = search.ToLowerInvariant();
+                query = query.Where(u =>
+                    u.UserName.ToLower().Contains(loweredSearch) ||
+                    u.Email.ToLower().Contains(loweredSearch));
             }
 
-            // Total count after filtering
-            var totalItems = query.Count();
+            // 4. Count total items after filtering
+            int totalItems = query.Count();
 
-            // Paginate results
+            // 5. Apply pagination
             var pagedUsers = query
-                .OrderBy(m => m.UserName)
+                .OrderBy(u => u.UserName)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
 
-            // Map to ViewModel
+            // 6. Map to ViewModel
             var projectMembers = pagedUsers.Select(m => new ProjectMembersVM
             {
                 Id = m.Id,
@@ -87,21 +101,22 @@ namespace ACC.Controllers
                 ProjectAccessLevel = _userRoleService.GetProjectAccessLevel(m.Id, ProjectId)?.Name ?? "None"
             }).ToList();
 
-            // Pass data to View
+            // 7. Pass data to the View via ViewBag
             ViewBag.Members = _userManager.Users.ToList();
             ViewBag.ProAccessLevelsList = _userRoleService.AllProjectAccessLevels();
             ViewBag.PositionsList = _userRoleService.AllProjectPositions();
-            ViewBag.ProjId = ProjectId;
-            ViewBag.Id = ProjectId;
 
-            // Pagination values
+            // 8. Pagination and context info
             ViewBag.TotalItems = totalItems;
             ViewBag.PageSize = pageSize;
             ViewBag.Page = page;
             ViewBag.Search = search;
+            ViewBag.ProjId = ProjectId;
+            ViewBag.Id = ProjectId;
 
             return View(projectMembers);
         }
+
 
 
 

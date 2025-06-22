@@ -70,9 +70,9 @@ namespace ACC.Controllers
 
             // Pass pagination details to the view
             ViewBag.CurrentPage = Page;
-            ViewBag.totalPages = TotalPages;
-            ViewBag.ShowArchived = showArchived;
+            ViewBag.TotalPages = TotalPages; 
             ViewBag.TotalItems = ProjectCount;
+            ViewBag.ShowArchived = showArchived;
 
             return View("Index", displayProject);
         }

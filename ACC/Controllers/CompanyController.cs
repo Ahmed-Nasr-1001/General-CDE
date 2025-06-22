@@ -20,17 +20,27 @@ namespace ACC.Controllers
             _projectActivityRepository = projectActivityRepository;
         }
 
-        // GET: Company/Index
 
-
-
-        public IActionResult Index(int page = 1, int pageSize = 4)
+        public IActionResult Index(int page = 1, int pageSize = 4, string searchTerm = null)
         {
-            var query = _companyRepository.GetAll();
+            var query = _companyRepository.GetAll().AsQueryable(); // Make sure this returns IQueryable
+
+            // Apply search filter if provided
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                searchTerm = searchTerm.ToLower();
+                query = query.Where(c =>
+                    c.Name.ToLower().Contains(searchTerm) ||
+                    (c.Website != null && c.Website.ToLower().Contains(searchTerm)) ||
+                    c.CompanyType.ToString().ToLower().Contains(searchTerm)
+                );
+            }
 
             int totalRecords = query.Count();
 
             var companiesListModel = query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(c => new CompanyVM
                 {
                     Id = c.Id,
@@ -42,14 +52,11 @@ namespace ACC.Controllers
                     SelectedCountry = c.Country,
                     SelectedCompanyType = c.CompanyType
                 })
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
                 .ToList();
 
-            // Pass pagination data to the view
             ViewBag.TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
             ViewBag.CurrentPage = page;
-
+            ViewBag.SearchTerm = searchTerm;
 
             return View("Index", companiesListModel);
         }
@@ -58,7 +65,9 @@ namespace ACC.Controllers
 
 
 
-     
+
+
+
         public IActionResult InsertCompany()
         {
             var model = new CompanyVM

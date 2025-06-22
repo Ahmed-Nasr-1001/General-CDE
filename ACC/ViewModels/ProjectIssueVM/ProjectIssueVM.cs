@@ -15,6 +15,7 @@ namespace ACC.ViewModels
 
         [Required(ErrorMessage = "Description is required.")]
         [StringLength(1000, ErrorMessage = "Description must be under 1000 characters.")]
+        [MinLength(10 , ErrorMessage = "Description must be over 10 characters.")]
         public string Description { get; set; }
 
         [Required(ErrorMessage = "Category is required.")]

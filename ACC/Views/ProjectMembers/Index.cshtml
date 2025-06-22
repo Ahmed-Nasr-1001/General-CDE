@@ -38,7 +38,7 @@
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMemberModal">+ Add members</button>
                     <form method="get" class="d-flex">
                         <input type="hidden" name="ProjectId" value="@ProjId" />
-                        <input type="text" class="form-control me-2" name="search" placeholder="Search by name " value="@searchQuery" />
+                        <input type="text" class="form-control me-2" name="search" placeholder="Search by name" value="@searchQuery" />
                         <button type="submit" class="btn btn-primary">Search</button>
                     </form>
                 </div>
@@ -90,22 +90,26 @@
                 <nav>
                     <ul class="pagination">
                         <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                            <a class="page-link" href="?ProjectId=@ProjId&page=@(currentPage - 1)&search=@searchQuery">Previous</a>
+                            <a class="page-link"
+                               href="@Url.Action("Index", "ProjectMembers", new { ProjectId = ProjId, page = currentPage - 1, search = searchQuery })">Previous</a>
                         </li>
 
                         @for (int i = 1; i <= totalPages; i++)
                         {
                             <li class="page-item @(i == currentPage ? "active" : "")">
-                                <a class="page-link" href="?ProjectId=@ProjId&page=@i&search=@searchQuery">@i</a>
+                                <a class="page-link"
+                                   href="@Url.Action("Index", "ProjectMembers", new { ProjectId = ProjId, page = i, search = searchQuery })">@i</a>
                             </li>
                         }
 
                         <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                            <a class="page-link" href="?ProjectId=@ProjId&page=@(currentPage + 1)&search=@searchQuery">Next</a>
+                            <a class="page-link"
+                               href="@Url.Action("Index", "ProjectMembers", new { ProjectId = ProjId, page = currentPage + 1, search = searchQuery })">Next</a>
                         </li>
                     </ul>
                 </nav>
             </div>
+
         </div>
 
         <div id="updatePanelContainer"></div>
@@ -218,7 +222,7 @@
             var memberId = $(this).data("id");
             var projectId = $(this).data("projectid");
 
-            // Optional: تأكيد الحذف باستخدام confirm
+            // Optional
             if (!confirm("Are you sure you want to delete this member?")) {
                 return;
             }

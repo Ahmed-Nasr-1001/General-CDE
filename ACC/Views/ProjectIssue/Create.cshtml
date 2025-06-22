@@ -70,16 +70,7 @@
             <input type="hidden" name="ScreenshotPath" value="@Model.ScreenshotPath" />
         </div>
     }
-    @if (!string.IsNullOrEmpty(Model.ScreenshotPath))
-    {
-        <div class="mb-3">
-            @* <a href="/IfcViewer/Index?fileId=@Model.FileId&projectId=@Model.ProjectId" class="btn btn-outline-secondary"> *@
-            @*     🔁 Retake Snapshot *@
-            @* </a> *@
-          
-
-        </div>
-    }
+  
 
     <button type="submit" class="btn btn-primary">Create</button>
 </form>

@@ -87,9 +87,9 @@
                                asp-action="Download"
                                asp-route-versionId="@issue.DocumentId"
                                asp-route-projectId="@issue.ProjectId"
-                               class="btn btn-sm btn-outline-primary">Download</a>
-                            <button class="dropdown-item view-document" onclick="openFile(@issue.DocumentId)">
-                                View File
+                               class="btn btn-group btn-outline-primary">Download</a>
+                            <button class="btn btn-group btn-success" onclick="openFile(@issue.DocumentId)">
+                                Open
                             </button>
                         </div>
                     }
@@ -147,46 +147,36 @@
         }
     </tbody>
 </table>
-
-<nav aria-label="Page navigation">
-    <ul class="pagination justify-content-center mt-4">
-        @if (ViewBag.CurrentPage > 1)
-        {
-            <li class="page-item">
+<!-- Pagination Controls - Style like Activities -->
+<div class="d-flex justify-content-center align-items-center mt-3">
+    <nav>
+        <ul class="pagination">
+            <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
                 <a class="page-link"
-                   asp-action="Index"
-                   asp-route-id="@ViewBag.Id"
-                   asp-route-page="@(ViewBag.CurrentPage - 1)"
-                   asp-route-searchTerm="@ViewBag.SearchTerm"
-                   asp-route-status="@ViewBag.SelectedStatus">Previous</a>
+                   href="@Url.Action("Index", new { page = ViewBag.CurrentPage - 1, searchTerm = ViewBag.SearchTerm })">
+                    Previous
+                </a>
             </li>
-        }
 
-        @for (int i = 1; i <= ViewBag.TotalPages; i++)
-        {
-            <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                <a class="page-link"
-                   asp-action="Index"
-                   asp-route-id="@ViewBag.Id"
-                   asp-route-page="@i"
-                   asp-route-searchTerm="@ViewBag.SearchTerm"
-                   asp-route-status="@ViewBag.SelectedStatus">@i</a>
-            </li>
-        }
+            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+            {
+                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                    <a class="page-link"
+                       href="@Url.Action("Index", new { page = i, searchTerm = ViewBag.SearchTerm })">@i</a>
+                </li>
+            }
 
-        @if (ViewBag.CurrentPage < ViewBag.TotalPages)
-        {
-            <li class="page-item">
+            <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
                 <a class="page-link"
-                   asp-action="Index"
-                   asp-route-id="@ViewBag.Id"
-                   asp-route-page="@(ViewBag.CurrentPage + 1)"
-                   asp-route-searchTerm="@ViewBag.SearchTerm"
-                   asp-route-status="@ViewBag.SelectedStatus">Next</a>
+                   href="@Url.Action("Index", new { page = ViewBag.CurrentPage + 1, searchTerm = ViewBag.SearchTerm })">
+                    Next
+                </a>
             </li>
-        }
-    </ul>
-</nav>
+        </ul>
+    </nav>
+</div>
+
+
 <!-- Bootstrap Modal for File Viewer -->
 <div class="modal fade" id="fileModal" tabindex="-1" aria-labelledby="fileModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">

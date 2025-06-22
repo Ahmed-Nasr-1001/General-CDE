@@ -234,6 +234,8 @@ namespace DataLayer
         }
 
         public DbSet<Company> Companies { get; set; }
+        public DbSet<ProjectCompany> ProjectCompanies { get; set; }
+
         public DbSet<Folder> Folders { get; set; }
         public DbSet<Document> Documents { get; set; }
         public DbSet<DocumentVersion> DocumentVersions { get; set; }
