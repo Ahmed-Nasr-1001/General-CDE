@@ -2,7 +2,11 @@
 @model List<ReviewVM>
 @{
     Layout = "_ProjectLayout";
-  
+    bool showActive = ViewBag.ShowActive;
+    bool reviewedByMe = ViewBag.ReviewedByMe;
+    bool startedByMe = ViewBag.StartedByMe;
+    bool showArchived = ViewBag.ShowArchived;
+
  }
 
 
@@ -108,7 +112,7 @@
         <br />
     <div id="TopNav" class="d-flex justify-content-between align-items-center mb-3">
         	<div class="nav-links mb-3">
-				<a href="@Url.Action("Index", new { id = ViewBag.Id ,  showArchived = false })"  class="@(ViewBag.ShowArchived == false ? "active" : "")">Active</a>
+				<a href="@Url.Action("Index", new { id = ViewBag.Id ,  showActive = true })"  class="@(ViewBag.ShowActive == true ? "active" : "")">Active</a>
 				<a href="@Url.Action("Index", new { id = ViewBag.Id ,  startedByMe = true })"  class="@(ViewBag.StartedByMe == true ? "active" : "")">Started By Me</a>
 				<a href="@Url.Action("Index", new { id = ViewBag.Id ,  reviewedByMe = true })"  class="@(ViewBag.ReviewedByMe == true ? "active" : "")">Reviewed By Me</a>
 				<a href="@Url.Action("Index", new { id = ViewBag.Id , showArchived = true })"  class="@(ViewBag.ShowArchived == true ? "active" : "")">Archived</a>
@@ -128,9 +132,19 @@
             <i class="bi bi-plus-lg"></i> Create Review
         </button>
 
-        <div class="d-flex">
-            <input type="text" id="searchInput" class="form-control" placeholder="Search by name" />
-        </div>
+            <div class="d-flex justify-content-between button-group mb-3">
+                <form asp-action="Index" asp-controller="Reviews" method="get" class="d-flex">
+                    <div class="search-container">
+                        <input type="text" class="form-control" name="srchText" placeholder="Search" value="@Context.Request.Query["srchText"]" />
+                        <input type="hidden" name="showActive" value="@((ViewBag.ShowActive ?? false).ToString().ToLower())" />
+                        <input type="hidden" name="reviewedByMe" value="@((ViewBag.ReviewedByMe ?? false).ToString().ToLower())" />
+                        <input type="hidden" name="startedByMe" value="@((ViewBag.StartedByMe ?? false).ToString().ToLower())" />
+                        <input type="hidden" name="showArchived" value="@((ViewBag.ShowArchived ?? false).ToString().ToLower())" />
+                        <input type="hidden" name="id" value="@ViewBag.Id" />
+                    </div>
+                    <button type="submit" class="btn btn-primary ms-2" style="height:40px;">Search</button>
+                </form>
+            </div>
     </div>
 </div>
 

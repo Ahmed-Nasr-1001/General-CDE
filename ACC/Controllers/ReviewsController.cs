@@ -45,10 +45,16 @@ namespace ACC.Controllers
             UserManager = userManager;
             _notificationService = notificationService;
         }
-        public async Task<IActionResult> Index(int id ,bool showArchived = false , bool reviewedByMe = false ,bool startedByMe = false , int page = 1, int pageSize = 4)
-            
-            
+        public async Task<IActionResult> Index(int id ,string? srchText = null, bool showActive = false ,bool showArchived = false , bool reviewedByMe = false ,bool startedByMe = false , int page = 1, int pageSize = 4)
+                     
         {
+            if (!showActive && !showArchived && !reviewedByMe && !startedByMe)
+            {
+                showActive = true;
+            }
+
+
+
             var CurrentUser = await UserManager.GetUserAsync(User);
 
             var query = _reviewRepository.GetCurrentStepUserReviews(CurrentUser.Id, id)
@@ -59,7 +65,6 @@ namespace ACC.Controllers
                 query = _reviewRepository.GetAll().Where(r =>r.ProjectId==id && r.FinalReviewStatus != FinalReviewStatus.Pending 
                 && r.InitiatorUserId == CurrentUser.Id).OrderByDescending(r => r.Id);
             }
-
             else if (reviewedByMe)
             {
                 var ReviewIdList = ReviewStepUsersService.GetAll()
@@ -79,6 +84,10 @@ namespace ACC.Controllers
             }
 
 
+            if (!string.IsNullOrEmpty(srchText))
+            {
+                query = query.Where(r => r.Name.ToLower().Contains(srchText.ToLower())).OrderByDescending(r => r.Id);
+            }
 
             int totalRecords = query.Count();
 
@@ -111,24 +120,16 @@ namespace ACC.Controllers
                 FinalReviewStatuses = Enum.GetValues(typeof(FinalReviewStatus)).Cast<FinalReviewStatus>().ToList(),
                 AllFolders = FolderService.GetFolderWithDocumentTree(),
             };
+
             ViewBag.CurrentUserId = CurrentUser.Id;
 
-            if(reviewedByMe)
-            {
-                ViewBag.ReviewedByMe = reviewedByMe;
-            }
-            else if(startedByMe)
-            {
-                ViewBag.StartedByMe = startedByMe;
 
-            }
-            else
-            {
-                ViewBag.ReviewedByMe = reviewedByMe;
-                ViewBag.StartedByMe = startedByMe;
-                ViewBag.ShowArchived = showArchived;
+            ViewBag.ShowActive = showActive;
+            ViewBag.ReviewedByMe = reviewedByMe;
+            ViewBag.StartedByMe = startedByMe;
+            ViewBag.ShowArchived = showArchived;
 
-            }
+            
         
 
             return View("Index", ReviewListModel);
@@ -274,7 +275,7 @@ namespace ACC.Controllers
 
             _reviewRepository.Save();
 
-            return RedirectToAction("Index", new { id = ReviewFromDB.ProjectId });
+            return RedirectToAction("Index", new { id = ReviewFromDB.ProjectId , startedByMe = true });
         }
 
 
@@ -437,7 +438,7 @@ namespace ACC.Controllers
                     }
                 }
             }
-            return RedirectToAction("Index" , new {id = ReviewFromDB.ProjectId});
+            return RedirectToAction("Index" , new {id = ReviewFromDB.ProjectId , showActive = true});
         }
 
         public async Task<IActionResult> Reject(int Id)
@@ -502,7 +503,7 @@ namespace ACC.Controllers
 
            
             _reviewRepository.Save();
-            return RedirectToAction("Index", new { id = ReviewFromDB.ProjectId });
+            return RedirectToAction("Index", new { id = ReviewFromDB.ProjectId , showActive = true });
         }
 
         public async Task<IActionResult> Details(int id)
