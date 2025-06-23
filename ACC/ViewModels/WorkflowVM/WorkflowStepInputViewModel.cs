@@ -8,7 +8,7 @@ namespace ACC.ViewModels.WorkflowVM
         public int? StepOrder { get; set; }
 
         public int TimeAllowedInDays { get; set; }
-        public List<string> AssignedUsersIds { get; set; } = new();
+        public List<string>? AssignedUsersIds { get; set; } = new();
 
         public ReviewersType? SelectedReviewersType { get; set; }
 

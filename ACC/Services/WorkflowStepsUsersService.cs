@@ -36,6 +36,8 @@ namespace ACC.Services
         {
           return  _context.Set<WorkflowStepUser>().Where(w=>w.StepId == StepId).ToList();
         }
+
+
         public void Insert(WorkflowStepUser obj)
         {
             _context.Set<WorkflowStepUser>().Add(obj);
@@ -49,6 +51,11 @@ namespace ACC.Services
         {
             _context.SaveChanges();
         }
+        public List<string> GetStepUsers( int StepId)
+        {
+            return _context.Set<WorkflowStepUser>().Where(w => w.StepId == StepId).Select(w=>w.UserId).ToList();
+        }
+
     }
 }
 

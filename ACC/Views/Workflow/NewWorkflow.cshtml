@@ -66,7 +66,24 @@
             var step = Model.Steps[i];
             <div class="card mb-3">
                 <div class="card-header bg-light">
-                    <strong>Step @(i + 1): @(i == 0 ? "Initial Review" : "Final Approval")</strong>
+                    @{
+                        string stepTitle;
+                        if (i == 0)
+                        {
+                            stepTitle = "Initial Review";
+                        }
+                        else if (i + 1 == Model.Steps.Count)
+                        {
+                            stepTitle = "Final Approval";
+                        }
+                        else
+                        {
+                            stepTitle = "Intermediate Step";
+                        }
+                    }
+                    <strong>Step @(i + 1): @stepTitle</strong>
+
+                  
                 </div>
                 <div class="card-body">
                     <input type="hidden" name="Steps[@i].StepOrder" value="@(i + 1)" />
@@ -180,7 +197,7 @@
         </div>
 
         <button type="submit" class="btn btn-success">Create Workflow</button>
-        <a asp-controller="Workflow" asp-action="Index" class="btn btn-secondary">Cancel</a>
+        <a asp-controller="Workflow" asp-action="Index" asp-route-id="@ViewBag.Id.ToString()" class="btn btn-secondary">Cancel</a>
     </form>
 </div>
 
@@ -189,11 +206,10 @@
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
 
-   
+
 
     <script>
-
-                 document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function () {
             const copyApprovedCheckbox = document.getElementById("copyApprovedFiles");
             const folderContainer = document.getElementById("destinationFolderContainer");
 
@@ -217,7 +233,6 @@
 
             // ... (keep all your existing validation and other logic)
         });
-
 
         document.addEventListener("DOMContentLoaded", function () {
             const allReviewers = @Html.Raw(Json.Serialize(Model.Reviewers));
@@ -260,9 +275,6 @@
 
                 if (reviewerType === "Multiple" || reviewerType === "1") {
                     if (selectedOption === "A minimum number of key reviewers must review this step") {
-                        return value && parseInt(value) > 0;
-                    }
-                    if (!selectedOption || selectedOption === "") {
                         return value && parseInt(value) > 0;
                     }
                 }
@@ -313,15 +325,41 @@
                         singleDiv.style.display = "block";
                         multiDiv.style.display = "none";
                         $(multiDiv).find('select').removeClass("is-invalid").next(".invalid-feedback").remove();
+
+                        // Hide min reviewers field when switching to Single
+                        const minReviewersContainer = document.querySelector(`.min-reviewers-input[data-step="${stepIndex}"]`)?.closest('.mb-3');
+                        if (minReviewersContainer) {
+                            minReviewersContainer.style.display = "none";
+                        }
+
                     } else if (selected === "Multiple" || selected === "1") {
                         singleDiv.style.display = "none";
                         multiDiv.style.display = "block";
                         $(singleDiv).find('select').removeClass("is-invalid").next(".invalid-feedback").remove();
+
+                        // Check if min reviewers should be shown based on selected option
+                        const optionSelect = document.querySelector(`.selected-option-input[data-step="${stepIndex}"]`);
+                        const minReviewersContainer = document.querySelector(`.min-reviewers-input[data-step="${stepIndex}"]`)?.closest('.mb-3');
+
+                        if (minReviewersContainer && optionSelect) {
+                            if (optionSelect.value === "A minimum number of key reviewers must review this step") {
+                                minReviewersContainer.style.display = "block";
+                            } else {
+                                minReviewersContainer.style.display = "none";
+                            }
+                        }
+
                     } else {
                         singleDiv.style.display = "none";
                         multiDiv.style.display = "none";
                         $(singleDiv).find('select').removeClass("is-invalid").next(".invalid-feedback").remove();
                         $(multiDiv).find('select').removeClass("is-invalid").next(".invalid-feedback").remove();
+
+                        // Hide min reviewers field when no reviewer type is selected
+                        const minReviewersContainer = document.querySelector(`.min-reviewers-input[data-step="${stepIndex}"]`)?.closest('.mb-3');
+                        if (minReviewersContainer) {
+                            minReviewersContainer.style.display = "none";
+                        }
                     }
                 }
 
@@ -329,7 +367,26 @@
                 toggleReviewerUI();
             });
 
-            
+            // Add event listener for option select changes
+            document.querySelectorAll(".selected-option-input").forEach(select => {
+                select.addEventListener("change", function() {
+                    const stepIndex = this.dataset.step;
+                    const minReviewersInput = document.querySelector(`.min-reviewers-input[data-step="${stepIndex}"]`);
+                    const minReviewersContainer = minReviewersInput ? minReviewersInput.closest('.mb-3') : null;
+
+                    if (minReviewersContainer) {
+                        if (this.value === "A minimum number of key reviewers must review this step") {
+                            minReviewersContainer.style.display = "block";
+                        } else {
+                            minReviewersContainer.style.display = "none";
+                            // Clear the input value when hiding
+                            minReviewersInput.value = "";
+                            // Remove any validation errors
+                            $(minReviewersInput).removeClass("is-invalid").next(".invalid-feedback").remove();
+                        }
+                    }
+                });
+            });
         });
 
         // jQuery document ready
@@ -423,24 +480,21 @@
                             multiSelect.next(".invalid-feedback").remove();
                         }
 
-                        // Check advanced options validation
+                        // Check advanced options validation - ONLY for the specific option
                         const selectedOption = optionSelect.val();
                         const minReviewers = minReviewersInput.val();
 
-                        if (selectedOption === "A minimum number of key reviewers must review this step" && (!minReviewers || parseInt(minReviewers) <= 0)) {
-                            isValid = false;
-                            minReviewersInput.addClass("is-invalid");
-                            if (minReviewersInput.next(".invalid-feedback").length === 0) {
-                                minReviewersInput.after('<div class="invalid-feedback">Please enter the minimum number of reviewers.</div>');
+                        if (selectedOption === "A minimum number of key reviewers must review this step") {
+                            if (!minReviewers || parseInt(minReviewers) <= 0) {
+                                isValid = false;
+                                minReviewersInput.addClass("is-invalid");
+                                if (minReviewersInput.next(".invalid-feedback").length === 0) {
+                                    minReviewersInput.after('<div class="invalid-feedback">Please enter the minimum number of reviewers.</div>');
+                                }
+                            } else {
+                                minReviewersInput.removeClass("is-invalid");
+                                minReviewersInput.next(".invalid-feedback").remove();
                             }
-                        } else if (!selectedOption && (!minReviewers || parseInt(minReviewers) <= 0)) {
-                            isValid = false;
-                            if (minReviewersInput.next(".invalid-feedback").length === 0) {
-                                minReviewersInput.after('<div class="invalid-feedback">You must specify either a minimum number of reviewers or select an option.</div>');
-                            }
-                        } else {
-                            minReviewersInput.removeClass("is-invalid");
-                            minReviewersInput.next(".invalid-feedback").remove();
                         }
                     }
                 });

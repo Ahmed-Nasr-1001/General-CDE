@@ -74,6 +74,17 @@
             text-decoration: none;
         }
 
+        .swal2-toast .swal2-icon.swal2-warning {
+            color: #856404 !important;
+            background-color: #fff3cd !important;
+            border: 1px solid #ffeeba !important;
+        }
+
+        .swal2-toast {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
     </style>
 </head>
 <body>
@@ -126,6 +137,12 @@
                                     <form asp-action="Edit" method="get" style="display:inline;">
                                     <button type="submit" asp-action="EditWorkflow" asp-controller="Workflow" asp-route-Id="@item.Id" class="btn btn-danger">Edit</button>
                                     </form>
+                                    <form asp-action="WorkflowDetails" method="get" style="display:inline;">
+                                        <button type="submit" asp-action="WorkflowDetails" asp-controller="Workflow" asp-route-Id="@item.Id" class="btn btn-danger">Details</button>
+                                    </form>
+                                <form asp-action="Delete" method="get" style="display:inline;">
+                                    <button type="submit" asp-action="Delete" asp-controller="Workflow" asp-route-Id="@item.Id" class="btn btn-danger">Delete</button>
+                                </form>
                                 </div>
                              
                             </td>
@@ -158,6 +175,10 @@
                 </div>
             </div>
         </div>
+
+
+       
+
 
 
     <!-- Pagination -->
@@ -225,23 +246,34 @@
                 alert("Please enter a valid number of steps.");
             }
         }
-    </script>
 
+     
+   </script>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        $(document).ready(function () {
-            $("#searchInput").on("keyup", function () {
-                var value = $(this).val().toLowerCase();
-
-                $("#companyTableBody tr").filter(function () {
-                    var name = $(this).find("td:nth-child(1)").text().toLowerCase(); 
-
-
-                    $(this).toggle(name.indexOf(value) > -1 );
-                });
-            });
-        });
+        @if (TempData["ErrorMessage"] != null)
+        {
+                <text>
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'warning',
+                        text: '@TempData["ErrorMessage"]',
+                        showConfirmButton: false,
+                        timer: 3500,
+                        timerProgressBar: true,
+                        customClass: {
+                            popup: 'warning-toast'
+                        }
+                    });
+                </text>
+        }
     </script>
+ 
+
     
 
 </body>

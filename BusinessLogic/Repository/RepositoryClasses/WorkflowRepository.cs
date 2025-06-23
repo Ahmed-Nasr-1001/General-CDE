@@ -27,7 +27,7 @@ namespace BusinessLogic.Repository.RepositoryClasses
 
         public WorkflowTemplate GetById(int Id)
         {
-            return Context.WorkflowTemplates.Include(w=>w.Steps).FirstOrDefault(w => w.Id == Id);    
+            return Context.WorkflowTemplates.Include(w=>w.Reviews).Include(w=>w.Steps).FirstOrDefault(w => w.Id == Id);    
         }
 
 

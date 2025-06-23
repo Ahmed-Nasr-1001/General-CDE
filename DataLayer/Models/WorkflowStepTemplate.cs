@@ -17,7 +17,7 @@ namespace DataLayer.Models
 
         public int TimeAllowed { get; set; }
 
-
+        public string selectedPositionId { get; set; }
         public ReviewersType? ReviewersType { get; set; }
 
         public int? MinReviewers { get; set; }
