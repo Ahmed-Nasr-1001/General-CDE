@@ -1,4 +1,5 @@
 ﻿using DataLayer.Models.Enums;
+using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
 namespace ACC.ViewModels.MemberVM.MemberVM
@@ -6,11 +7,12 @@ namespace ACC.ViewModels.MemberVM.MemberVM
     public class InserProjecttMembersVM
     {
 
-        [Required(ErrorMessage = "Member is required")]
-        public string? Name { get; set; }  
+        public int ProjId { get; set; }
 
-      
-        public string Email { get; set; }
+        [Required(ErrorMessage = "Member is required")]
+        [Remote(action: "CheckName", controller: "ProjectMembers", AdditionalFields = "ProjId", ErrorMessage = "Member is already existed in this project.")]
+        public string? Name { get; set; }    
+        public string? Email { get; set; }
         public int? CompanyId { get; set; }
         [Required(ErrorMessage = "Global access level is required")]
         public string? GlobalAccessLevelId { get; set; }

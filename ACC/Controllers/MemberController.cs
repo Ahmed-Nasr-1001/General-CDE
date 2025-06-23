@@ -266,8 +266,23 @@ namespace ACC.Controllers
 
             return PartialView("PartialViews/_UpdateMemberPartialView", insertMemberVM);
         }
+        [AcceptVerbs("Get", "Post")]
+        public IActionResult CheckEmail(string Email)
+        {
+            var user = _userManager.Users.Where(u => u.UserName.ToLower() == Email.ToLower()).FirstOrDefault();
 
-     
+            if (user == null)
+            {
+                return Json(true);
+            }
+            else
+            {
+                return Json(false);
+            }
+        }
+
+
+
 
 
     }
