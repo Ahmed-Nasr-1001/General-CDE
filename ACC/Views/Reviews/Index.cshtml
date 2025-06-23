@@ -208,40 +208,30 @@
             </tbody>
         </table>
 
-    <!-- Pagination -->
-    <nav aria-label="Page navigation">
-        <ul class="pagination justify-content-center mt-4">
-            @if (ViewBag.CurrentPage > 1)
-            {
-                <li class="page-item">
-                    <a class="page-link"
-                       href="@Url.Action("Index", "Reviews", new { id = ViewBag.Id, page = ViewBag.CurrentPage - 1 })">
-                        Previous
-                    </a>
-                </li>
-            }
+    <!-- Pagination Buttons (Tight Style Like Activities) -->
+    <div class=" d-flex justify-content-center mt-4" role="group" aria-label="Pagination">
+        <!-- Previous -->
+        <a href="@Url.Action("Index", "Reviews", new { id = ViewBag.Id, page = ViewBag.CurrentPage - 1 })"
+           class="btn @(ViewBag.CurrentPage == 1 ? "btn-secondary disabled" : "btn-outline-primary")">
+            Previous
+        </a>
 
-            @for (int i = 1; i <= ViewBag.TotalPages; i++)
-            {
-                <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
-                    <a class="page-link"
-                       href="@Url.Action("Index", "Reviews", new { id = ViewBag.Id, page = i })">
-                        @i
-                    </a>
-                </li>
-            }
+        <!-- Page Numbers -->
+        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+        {
+            <a href="@Url.Action("Index", "Reviews", new { id = ViewBag.Id, page = i })"
+               class="btn @(ViewBag.CurrentPage == i ? "btn-primary" : "btn-outline-primary")">
+                @i
+            </a>
+        }
 
-            @if (ViewBag.CurrentPage < ViewBag.TotalPages)
-            {
-                <li class="page-item">
-                    <a class="page-link"
-                       href="@Url.Action("Index", "Reviews", new { id = ViewBag.Id, page = ViewBag.CurrentPage + 1 })">
-                        Next
-                    </a>
-                </li>
-            }
-        </ul>
-    </nav>
+        <!-- Next -->
+        <a href="@Url.Action("Index", "Reviews", new { id = ViewBag.Id, page = ViewBag.CurrentPage + 1 })"
+           class="btn @(ViewBag.CurrentPage == ViewBag.TotalPages ? "btn-secondary disabled" : "btn-outline-primary")">
+            Next
+        </a>
+    </div>
+
 
 
     <!-- Create Review Modal -->
