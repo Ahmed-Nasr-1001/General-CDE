@@ -115,7 +115,19 @@
         <div id="updatePanelContainer"></div>
     </div>
 
-    <partial name="PartialViews/_AddProjectMembersPartialView" model="new InserProjecttMembersVM()" />
+
+    <partial name="PartialViews/_AddProjectMembersPartialView"
+             model="new InserProjecttMembersVM()"
+             view-data='new ViewDataDictionary(ViewData)
+         {
+             { "Members", ViewBag.Members },
+             { "PositionsList", ViewBag.PositionsList },
+             { "ProAccessLevelsList", ViewBag.ProAccessLevelsList },
+             { "ProjId", ViewBag.ProjId }
+         }' />
+
+
+
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

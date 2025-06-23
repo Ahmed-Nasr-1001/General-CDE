@@ -104,7 +104,14 @@
             </button>
 
             <div class="d-flex">
-                <input type="text" id="searchInput" class="form-control" placeholder="Search by name" />
+                <div class="d-flex justify-content-end my-3">
+                    <form method="get" asp-controller="Workflow" asp-action="Index" class="d-flex">
+                        <input type="hidden" name="id" value="@ViewBag.Id" />
+                        <input type="text" name="searchTerm" value="@ViewBag.SearchTerm" class="form-control me-2" placeholder="Search by name" />
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </form>
+                </div>
+
             </div>
         </div>
     </div>
@@ -177,21 +184,36 @@
         </div>
 
 
-       
 
 
 
-    <!-- Pagination -->
-    <div class="pagination">
-        @for (int i = 1; i <= ViewBag.TotalPages; i++)
-        {
-            <a href="/Workflow/Index?id=@ViewBag.Id&page=@i"
-               class="btn @(ViewBag.CurrentPage == i ? "btn-primary" : "btn-outline-primary")">
-                @i
+
+    <!-- Pagination Classic (like ProjectMembers) -->
+    <div class="d-flex justify-content-center mt-4">
+        <div class="btn-group" role="group" aria-label="Pagination">
+            <!-- Previous Button -->
+            <a href="/Workflow/Index?id=@ViewBag.Id&page=@(ViewBag.CurrentPage - 1)"
+               class="btn @(ViewBag.CurrentPage == 1 ? "btn-secondary disabled" : "btn-outline-primary")">
+                Previous
             </a>
 
-        }
+            <!-- Page Numbers -->
+            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+            {
+                <a href="/Workflow/Index?id=@ViewBag.Id&page=@i"
+                   class="btn @(ViewBag.CurrentPage == i ? "btn-primary" : "btn-outline-primary")">
+                    @i
+                </a>
+            }
+
+            <!-- Next Button -->
+            <a href="/Workflow/Index?id=@ViewBag.Id&page=@(ViewBag.CurrentPage + 1)"
+               class="btn @(ViewBag.CurrentPage == ViewBag.TotalPages ? "btn-secondary disabled" : "btn-outline-primary")">
+                Next
+            </a>
+        </div>
     </div>
+
 
     <!-- jQuery CDN (needed for your script) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

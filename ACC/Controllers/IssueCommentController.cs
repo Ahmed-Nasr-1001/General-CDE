@@ -32,7 +32,7 @@ namespace ACC.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            // ✅ تعليم الإشعارات كمقروءة باستخدام الـ Notification Repository
+           
             var unreadNotifications = await _notificationRepo
                 .GetUnreadByIssueAndUserAsync(issueId, user.Id);
 
@@ -41,9 +41,9 @@ namespace ACC.Controllers
                 note.IsRead = true;
             }
 
-            _notificationRepo.Save(); // أو await إذا عندك async
+            _notificationRepo.Save(); 
 
-            // ✅ جلب الـ ProjectId من الريبو
+            
             var issue = await _issueRepo.GetByIdAsync(issueId);
             ViewBag.ProjectId = issue?.ProjectId;
             ViewBag.IssueId = issueId;
