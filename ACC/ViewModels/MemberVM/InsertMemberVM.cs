@@ -10,6 +10,7 @@ namespace ACC.ViewModels.MemberVM
 
         [Required(ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Invalid email format")]
+        [Remote(action: "CheckEmail", controller: "Member", ErrorMessage = "Username is already existed.")]
         public string Email { get; set; }
         [Required(ErrorMessage = "Company is required")]
         public int? CompanyId { get; set; }

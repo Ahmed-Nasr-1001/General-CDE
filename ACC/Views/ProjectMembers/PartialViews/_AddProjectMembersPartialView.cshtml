@@ -19,6 +19,7 @@
             </div>
             <div class="modal-body">
                 <form id="addMemberForm" method="post" asp-action="InsertMember" asp-controller="ProjectMembers" asp-route-ProjectId="@ProjId">
+                    <input type="hidden" asp-for="ProjId" value="@ProjId" />
                     <div class="mb-3">
                         <label asp-for="Name" class="form-label">Member</label>
                         <select class="form-select" asp-for="Name" asp-items="members">

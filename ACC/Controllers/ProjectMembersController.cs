@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 namespace ACC.Controllers
 {
@@ -307,6 +308,23 @@ namespace ACC.Controllers
                 return PartialView("PartialViews/_UpdateProjectMembersPartialView", insertProjectMemberVM);
   
            
+        }
+        [AcceptVerbs("Get", "Post")]
+        public IActionResult CheckName(string Name, int ProjId)
+        {
+            var user = _userManager.Users.Where(u => u.UserName.ToLower() == Name.ToLower()).FirstOrDefault();
+            string userId = user.Id;
+
+            var isUserExistedInProject = _userRoleService.GetAll().Any(i => i.ProjectId == ProjId && i.UserId == userId);
+
+            if (isUserExistedInProject == false)
+            {
+                return Json(true);
+            }
+            else
+            {
+                return Json(false);
+            }
         }
     }
 }
