@@ -43,51 +43,30 @@ namespace ACC.Controllers
         }
 
 
-        public IActionResult Index(int ProjectId, int page = 1, string search = "", int pageSize = 5)
+        public IActionResult Index(int ProjectId, int page = 1, string search = null, int pageSize = 5)
         {
-            // 1. Get all user IDs assigned to this project
+
             var userIdsInProject = _userRoleService.GetMembers(ProjectId);
 
-            if (userIdsInProject == null || !userIdsInProject.Any())
-            {
-                // No members found for this project
-                ViewBag.TotalItems = 0;
-                ViewBag.PageSize = pageSize;
-                ViewBag.Page = page;
-                ViewBag.Search = search;
-                ViewBag.ProjId = ProjectId;
-                ViewBag.Id = ProjectId;
-
-                return View(new List<ProjectMembersVM>());
-            }
-
-            // 2. Build base query for users in the project
             var query = _userManager.Users
                 .Include(u => u.Company)
                 .Include(u => u.UserRoles)
                 .Where(u => userIdsInProject.Contains(u.Id))
                 .AsQueryable();
 
-            // 3. Apply search filter (case-insensitive)
-            if (!string.IsNullOrWhiteSpace(search))
+            if (!string.IsNullOrEmpty(search))
             {
-                string loweredSearch = search.ToLowerInvariant();
-                query = query.Where(u =>
-                    u.UserName.ToLower().Contains(loweredSearch) ||
-                    u.Email.ToLower().Contains(loweredSearch));
+                query = query.Where(m => m.UserName.ToLower().Contains(search.ToLower()));
             }
 
-            // 4. Count total items after filtering
-            int totalItems = query.Count();
+            var totalItems = query.Count();
 
-            // 5. Apply pagination
             var pagedUsers = query
-                .OrderBy(u => u.UserName)
+                .OrderBy(m => m.Id)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
 
-            // 6. Map to ViewModel
             var projectMembers = pagedUsers.Select(m => new ProjectMembersVM
             {
                 Id = m.Id,
@@ -98,20 +77,18 @@ namespace ACC.Controllers
                 Email = m.UserName,
                 Company = m.Company?.Name ?? "No Company",
                 AddedOn = m.AddedOn,
-                Position = _userRoleService.GetPosition(m.Id, ProjectId)?.Name ?? "Unassigned",
-                ProjectAccessLevel = _userRoleService.GetProjectAccessLevel(m.Id, ProjectId)?.Name ?? "None"
+                Position = _userRoleService.GetPosition(m.Id, ProjectId).Name,
+                ProjectAccessLevel = _userRoleService.GetProjectAccessLevel(m.Id, ProjectId).Name,
+
             }).ToList();
 
-            // 7. Pass data to the View via ViewBag
-            ViewBag.Members = _userManager.Users.ToList();
-            ViewBag.ProAccessLevelsList = _userRoleService.AllProjectAccessLevels();
-            ViewBag.PositionsList = _userRoleService.AllProjectPositions();
-
-            // 8. Pagination and context info
             ViewBag.TotalItems = totalItems;
             ViewBag.PageSize = pageSize;
             ViewBag.Page = page;
             ViewBag.Search = search;
+            ViewBag.Members = _userManager.Users.ToList();
+            ViewBag.ProAccessLevelsList = _userRoleService.AllProjectAccessLevels();
+            ViewBag.PositionsList = _userRoleService.AllProjectPositions();
             ViewBag.ProjId = ProjectId;
             ViewBag.Id = ProjectId;
 
@@ -119,16 +96,14 @@ namespace ACC.Controllers
         }
 
 
-
-
         [HttpPost]
         [HasRoles(GlobalAccessLevels.AccountAdmin, ProjectAccessLevels.ProjectAdmin)]
 
-        public async Task<IActionResult> InsertMember(InserProjecttMembersVM memberFromReq , int ProjectId)
+        public async Task<IActionResult> InsertMember(InserProjecttMembersVM memberFromReq, int ProjectId)
         {
-            
-           
-            var memebr = _userManager.Users.Where(u=>u.UserName == memberFromReq.Name).FirstOrDefault();
+
+
+            var memebr = _userManager.Users.Where(u => u.UserName == memberFromReq.Name).FirstOrDefault();
 
             if (memebr != null)
             {
@@ -154,7 +129,7 @@ namespace ACC.Controllers
                 _userRoleService.Insert(position);
 
                 _userRoleService.Save();
-                
+
             }
             return RedirectToAction("Index", new { ProjectId = ProjectId });
 
@@ -165,23 +140,23 @@ namespace ACC.Controllers
 
         public async Task<IActionResult> Delete(string id, int ProjectId)
         {
-            
-            var projectMemberRelations = _userRoleService.GetAll().Where(i=>i.ProjectId == ProjectId && i.UserId==id).ToList();
-            foreach(var relation in projectMemberRelations)
+
+            var projectMemberRelations = _userRoleService.GetAll().Where(i => i.ProjectId == ProjectId && i.UserId == id).ToList();
+            foreach (var relation in projectMemberRelations)
             {
                 _userRoleService.Delete(relation);
             }
             _userRoleService.Save();
-            
+
             return RedirectToAction("Index", new { ProjectId = ProjectId });
         }
 
         [HttpGet]
         [HasRoles(GlobalAccessLevels.AccountAdmin, ProjectAccessLevels.ProjectAdmin)]
 
-        public IActionResult Details(string id , int ? ProjectId = null)
+        public IActionResult Details(string id, int? ProjectId = null)
         {
-         
+
             var member = _userManager.Users.FirstOrDefault(u => u.Id == id);
             if (member != null)
             {
@@ -190,7 +165,7 @@ namespace ACC.Controllers
                     userName = member.UserName,
                     email = member.Email,
                     company = member.Company?.Name,
-                    role = _userRoleService.GetByUserId(id , ProjectId).Role.Name,
+                    role = _userRoleService.GetByUserId(id, ProjectId).Role.Name,
                     accessLevels = member.AccessLevel
                 });
             }
@@ -200,9 +175,9 @@ namespace ACC.Controllers
         [HttpPost]
         [HasRoles(GlobalAccessLevels.AccountAdmin, ProjectAccessLevels.ProjectAdmin)]
 
-        public async Task<IActionResult> Update(string id, int ProjectId , [FromBody] UpdateMemberVM member)
+        public async Task<IActionResult> Update(string id, int ProjectId, [FromBody] UpdateMemberVM member)
         {
-            
+
 
             if (!ModelState.IsValid)
             {
@@ -223,7 +198,7 @@ namespace ACC.Controllers
 
 
 
-                var ProjectAccessLevel = _userRoleService.GetAll().FirstOrDefault(i => i.UserId == id && i.ProjectId== ProjectId && i.Role.ProjectAccessLevel == true);
+                var ProjectAccessLevel = _userRoleService.GetAll().FirstOrDefault(i => i.UserId == id && i.ProjectId == ProjectId && i.Role.ProjectAccessLevel == true);
                 if (ProjectAccessLevel != null)
                 {
                     _userRoleService.Delete(ProjectAccessLevel);
@@ -277,37 +252,37 @@ namespace ACC.Controllers
 
         {
 
-            
-                var member = _userManager.Users.FirstOrDefault(u => u.Id == id);
-                if (member == null)
-                {
-                    return NotFound();
-                }
+
+            var member = _userManager.Users.FirstOrDefault(u => u.Id == id);
+            if (member == null)
+            {
+                return NotFound();
+            }
 
 
-                var insertProjectMemberVM = new InserProjecttMembersVM
-                {
-                    FirstName = member.FirstName,
-                    LastName = member.LastName,
-                    MobilePhone=member.MobilePhone,
-                    Email = member.UserName,
-                    CompanyId = member.CompanyId,
-                    currentCompany = _companyRepository.GetById(member.CompanyId ?? 0)?.Name,
-                    PositionId = _userRoleService.GetPosition(id , ProjectId).Id,
-                    ProjectAccessLevelId = _userRoleService.GetProjectAccessLevel(id , ProjectId).Id,
+            var insertProjectMemberVM = new InserProjecttMembersVM
+            {
+                FirstName = member.FirstName,
+                LastName = member.LastName,
+                MobilePhone = member.MobilePhone,
+                Email = member.UserName,
+                CompanyId = member.CompanyId,
+                currentCompany = _companyRepository.GetById(member.CompanyId ?? 0)?.Name,
+                PositionId = _userRoleService.GetPosition(id, ProjectId).Id,
+                ProjectAccessLevelId = _userRoleService.GetProjectAccessLevel(id, ProjectId).Id,
 
-                };
+            };
 
 
 
-                ViewBag.Companies = new SelectList(_companyRepository.GetAll(), "Id", "Name");
-                ViewBag.PositionsList = new SelectList(_userRoleService.AllProjectPositions(), "Id", "Name");
-                ViewBag.ProjectAccessLevelsList = new SelectList(_userRoleService.AllProjectAccessLevels(), "Id", "Name");
-                ViewBag.ProjId = ProjectId;
+            ViewBag.Companies = new SelectList(_companyRepository.GetAll(), "Id", "Name");
+            ViewBag.PositionsList = new SelectList(_userRoleService.AllProjectPositions(), "Id", "Name");
+            ViewBag.ProjectAccessLevelsList = new SelectList(_userRoleService.AllProjectAccessLevels(), "Id", "Name");
+            ViewBag.ProjId = ProjectId;
 
-                return PartialView("PartialViews/_UpdateProjectMembersPartialView", insertProjectMemberVM);
-  
-           
+            return PartialView("PartialViews/_UpdateProjectMembersPartialView", insertProjectMemberVM);
+
+
         }
         [AcceptVerbs("Get", "Post")]
         public IActionResult CheckName(string Name, int ProjId)

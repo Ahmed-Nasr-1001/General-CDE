@@ -44,7 +44,7 @@ namespace ACC.Controllers
 
             if (!string.IsNullOrEmpty(search))
             {
-                query = query.Where(m => m.UserName.Contains(search));
+                query = query.Where(m => m.UserName.ToLower().Contains(search.ToLower()));
             }
 
             var totalItems = query.Count();

@@ -30,7 +30,7 @@ namespace BusinessLogic.Repository.RepositoryClasses
             // Apply search filter if provided
             if (!string.IsNullOrEmpty(searchText))
             {
-                query = query.Where(x => x.Name.Contains(searchText) || x.ProjectNumber.Contains(searchText));
+                query = query.Where(x => x.Name.ToLower().Contains(searchText.ToLower()) || x.ProjectNumber.Contains(searchText));
             }
 
             return query.OrderBy(x => x.Id)

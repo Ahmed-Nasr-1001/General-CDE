@@ -36,7 +36,7 @@ namespace ACC.Controllers
             _userRoleService = userRoleService;
         }
 
-        public IActionResult Index(int id , int page = 1, int pageSize = 4)
+        public IActionResult Index(int id ,string search = null, int page = 1, int pageSize = 4)
         {
 
             var query = _workflowRepository.GetAllWithSteps(id);
@@ -44,6 +44,11 @@ namespace ACC.Controllers
             if (query == null)
             {
                 throw new InvalidOperationException("The workflow repository returned null. Make sure it's returning a valid collection.");
+            }
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query.Where(i=>i.Name.ToLower().Contains(search.ToLower()));
             }
 
             int totalRecords = query.Count();
