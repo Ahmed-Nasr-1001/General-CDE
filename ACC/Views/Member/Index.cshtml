@@ -193,7 +193,7 @@
             $(document).on("click", ".delete-btn", function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-                
+                var memberId = $(this).data("id");
                     $.ajax({
                         url: "/Member/Delete/" + memberId,
                         type: "POST",
@@ -207,10 +207,11 @@
                         }
                     });
                 
-                });
-                });
+              
             });
         });
+   
+
     </script>
 </body>
 </html>

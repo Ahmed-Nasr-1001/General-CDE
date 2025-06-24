@@ -43,7 +43,7 @@ namespace ACC.Controllers
         }
 
 
-        public IActionResult Index(int ProjectId, int page = 1, string search = null, int pageSize = 5)
+        public IActionResult Index(int ProjectId, int page = 1, string search ="", int pageSize = 5)
         {
 
             var userIdsInProject = _userRoleService.GetMembers(ProjectId);
@@ -57,6 +57,7 @@ namespace ACC.Controllers
             if (!string.IsNullOrEmpty(search))
             {
                 query = query.Where(m => m.UserName.ToLower().Contains(search.ToLower()));
+              
             }
 
             var totalItems = query.Count();
