@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DataLayer.Migrations
 {
     /// <inheritdoc />
-    public partial class sss : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -684,7 +684,8 @@ namespace DataLayer.Migrations
                     ReadAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     RecipientId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     SenderId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    ReviewId = table.Column<int>(type: "int", nullable: true)
+                    ReviewId = table.Column<int>(type: "int", nullable: true),
+                    IssueId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -698,6 +699,11 @@ namespace DataLayer.Migrations
                         name: "FK_Notifications_AspNetUsers_SenderId",
                         column: x => x.SenderId,
                         principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Notifications_Issues_IssueId",
+                        column: x => x.IssueId,
+                        principalTable: "Issues",
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Notifications_Reviews_ReviewId",
@@ -942,6 +948,11 @@ namespace DataLayer.Migrations
                 name: "IX_Issues_ProjectId",
                 table: "Issues",
                 column: "ProjectId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_IssueId",
+                table: "Notifications",
+                column: "IssueId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Notifications_RecipientId",

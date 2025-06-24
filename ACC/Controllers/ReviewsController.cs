@@ -506,10 +506,10 @@ namespace ACC.Controllers
             return RedirectToAction("Index", new { id = ReviewFromDB.ProjectId , showActive = true });
         }
 
-        public async Task<IActionResult> Details(int id)
-        {
-            var CurrentUser = await UserManager.GetUserAsync(User);
-
+        public async Task<IActionResult> Details(int id , bool showActive , bool reviewedByMe , bool startedByMe  , bool showArchived )
+        {                                                                     
+            var CurrentUser = await UserManager.GetUserAsync(User);            
+                                                                              
             var review = _reviewRepository.GetReviewById(id);
 
             if (review == null)
@@ -540,6 +540,10 @@ namespace ACC.Controllers
             ViewBag.ReviewId = review.Id;
             ViewBag.CurrentUserId = CurrentUser.Id;
             ViewBag.Initiator = review.InitiatorUserId;
+            ViewBag.showActive = showActive;
+            ViewBag.reviewedByMe = reviewedByMe;
+            ViewBag.startedByMe = startedByMe;
+            ViewBag.showArchived =showArchived;
 
 
             if (CurrentUser.Id != review.InitiatorUserId && review.CurrentStep != null)
@@ -579,6 +583,15 @@ namespace ACC.Controllers
 
             ViewBag.DocumentId = documentId;
             ViewBag.StepOrder = currentStepOrder;
+
+            if (CurrentUser.Id != review.InitiatorUserId && review.CurrentStep != null)
+            {
+                ViewBag.CanComment = true;
+            }
+            else
+            {
+                ViewBag.CanComment = false;
+            }
             return PartialView("PartialViews/_CommentsPartialView", comments);
         }
 
@@ -612,6 +625,15 @@ namespace ACC.Controllers
             var CurrentUser = await UserManager.GetUserAsync(User);
             ViewBag.Initiator = _reviewRepository.GetById(reviewId).InitiatorUserId;
             ViewBag.CurrentUserId = CurrentUser.Id;
+            var review = _reviewRepository.GetReviewById(reviewId);
+            if (CurrentUser.Id != review.InitiatorUserId && review.CurrentStep != null)
+            {
+                ViewBag.CanComment = true;
+            }
+            else
+            {
+                ViewBag.CanComment = false;
+            }
 
             return PartialView("PartialViews/_CommentsPartialView", comments);
         }

@@ -181,7 +181,7 @@
             {
                 <button type="button" class="toggle-btn" onclick="toggleFolder(this)">▼</button>
             }
-            <input type="checkbox" name="SelectedFolderIds" value="@folder.Id" id="folder_@folder.Id" />
+            <input type="checkbox" name="SelectedDistFolderId" value="@folder.Id" id="folder_@folder.Id" />
             <label for="folder_@folder.Id" class="folder-label">@folder.Name</label>
             @if (folder.Children != null && folder.Children.Any())
             {

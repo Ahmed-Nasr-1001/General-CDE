@@ -1,5 +1,9 @@
 ﻿@using ACC.ViewModels.ReviewsVM
 @model List<DocumentUponAction>
+@{
+    Layout = "_ProjectLayout";
+
+ }
 
 <!DOCTYPE html>
 <html>
@@ -174,37 +178,242 @@
 
 <script>
     $(document).ready(function () {
+        
+        // Global variables
+        let currentDocumentId = null;
+        let currentReviewId = null;
+        let currentStepOrder = null;
+        let isSubmitting = false;
+        let operationQueue = []; // Queue for operations to prevent conflicts
 
-        // عند الضغط على زر "Comments"
-        $(".open-comments-btn").click(function () {
-            const documentId = $(this).data("document-id");
-            const reviewId = $(this).data("review-id");
-            const currentStepOrder = $(this).data("step-order");
+        // Function to process queued operations one by one
+        function processQueue() {
+            if (operationQueue.length === 0 || isSubmitting) {
+                return;
+            }
+            
+            const operation = operationQueue.shift();
+            operation();
+        }
 
-            // عرض رسالة تحميل مؤقتة داخل المودال
-            $("#commentsModalBody").html('<div class="text-center">Loading...</div>');
+        // Function to load comments
+        function loadComments(documentId, reviewId, stepOrder, showLoading = true) {
+            return new Promise((resolve, reject) => {
+                if (showLoading) {
+                    $("#commentsModalBody").html(`
+                        <div class="text-center p-3">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2 mb-0">Loading comments...</p>
+                        </div>
+                    `);
+                }
 
-            // تحميل التعليقات والفورم من السيرفر
-            $.get("/Reviews/DocumentComments", { documentId, reviewId, currentStepOrder }, function (data) {
-                $("#commentsModalBody").html(data); // عرض البيانات داخل المودال
-                $('#commentsModal').modal('show');   // فتح المودال
+                $.ajax({
+                    url: "/Reviews/DocumentComments",
+                    type: "GET",
+                    data: { 
+                        documentId: documentId, 
+                        reviewId: reviewId, 
+                        currentStepOrder: stepOrder 
+                    },
+                    timeout: 30000,
+                    cache: false
+                })
+                .done(function (data) {
+                    $("#commentsModalBody").html(data);
+                    console.log('Comments loaded successfully');
+                    resolve(data);
+                })
+                .fail(function (xhr, status, error) {
+                    console.error('Error loading comments:', error);
+                    $("#commentsModalBody").html(`
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Error loading comments. Please try again.
+                            <button class="btn btn-sm btn-outline-primary mt-2 d-block" onclick="retryLoadComments()">
+                                <i class="bi bi-arrow-clockwise me-1"></i>Retry
+                            </button>
+                        </div>
+                    `);
+                    reject(error);
+                });
             });
+        }
+
+        // Retry function
+        window.retryLoadComments = function() {
+            if (currentDocumentId && currentReviewId && currentStepOrder) {
+                loadComments(currentDocumentId, currentReviewId, currentStepOrder);
+            }
+        };
+
+        // When clicking "Comments" button
+        $(".open-comments-btn").click(function () {
+            currentDocumentId = $(this).data("document-id");
+            currentReviewId = $(this).data("review-id");
+            currentStepOrder = $(this).data("step-order");
+
+            // Clear any pending operations for fresh start
+            operationQueue = [];
+            isSubmitting = false;
+
+            $('#commentsModal').modal('show');
+            
+            // Load comments after modal is shown
+            setTimeout(() => {
+                loadComments(currentDocumentId, currentReviewId, currentStepOrder);
+            }, 300);
         });
 
-        // عند إرسال نموذج التعليق (بـ Delegation لأنه يتحمّل ديناميكيًا)
+        // Handle comment form submission with proper queuing
         $(document).on('submit', '.comment-form', function (e) {
             e.preventDefault();
+            
+            // Add to queue instead of immediate execution
             const form = $(this);
-            const btn = form.find("button[type=submit]");
-            btn.prop("disabled", true); // تعطيل الزر مؤقتًا
-
-            // إرسال البيانات إلى السيرفر
-            $.post(form.attr('action'), form.serialize(), function (data) {
-                $('#commentsModalBody').html(data); // إعادة تحميل التعليقات والفورم
-            }).always(() => {
-                btn.prop("disabled", false); // إعادة تفعيل الزر
-            });
+            operationQueue.push(() => submitComment(form));
+            processQueue();
         });
+
+        // Function to submit comment with proper error handling
+        function submitComment(form) {
+            if (isSubmitting) {
+                console.log('Already submitting, skipping...');
+                return;
+            }
+            
+            isSubmitting = true;
+            
+            const submitBtn = form.find("button[type=submit]");
+            const originalBtnText = submitBtn.html();
+            const formData = form.serialize();
+            const actionUrl = form.attr('action');
+            
+            console.log('Submitting comment...', {
+                url: actionUrl,
+                data: formData
+            });
+
+            // Clear existing alerts
+            $('.alert').fadeOut(150, function() { $(this).remove(); });
+
+            // Disable button and show loading
+            submitBtn.prop("disabled", true)
+                     .html('<span class="spinner-border spinner-border-sm me-1"></span>Adding...');
+
+            // Disable the form to prevent multiple submissions
+            form.find('input, textarea, button').prop('disabled', true);
+
+            $.ajax({
+                url: actionUrl,
+                type: "POST",
+                data: formData,
+                timeout: 45000, // Increased timeout for server processing
+                cache: false,
+                traditional: true
+            })
+            .done(function (response, textStatus, xhr) {
+                console.log('Comment submitted successfully');
+                
+                // Show success message
+                const successAlert = $(`
+                    <div class="alert alert-success fade show mb-3">
+                        <i class="bi bi-check-circle me-2"></i>Comment added successfully!
+                    </div>
+                `);
+                $("#commentsModalBody").prepend(successAlert);
+                
+                // Wait for server to fully process before refreshing
+                setTimeout(() => {
+                    successAlert.fadeOut(300, function() { $(this).remove(); });
+                    
+                    // Reload comments to show updated list
+                    loadComments(currentDocumentId, currentReviewId, currentStepOrder, false)
+                        .then(() => {
+                            console.log('Comments refreshed after submission');
+                        })
+                        .catch((error) => {
+                            console.error('Error refreshing comments:', error);
+                        })
+                        .finally(() => {
+                            // Reset submission state and process next in queue
+                            isSubmitting = false;
+                            setTimeout(processQueue, 500); // Small delay before next operation
+                        });
+                    
+                }, 1200); // Give server time to commit to database
+            })
+            .fail(function (xhr, status, error) {
+                console.error('Error submitting comment:', {
+                    status: xhr.status,
+                    statusText: xhr.statusText,
+                    error: error,
+                    responseText: xhr.responseText
+                });
+
+                let errorMessage = "Failed to add comment. ";
+                
+                // More specific error handling
+                if (xhr.status === 0) {
+                    errorMessage += "Connection lost. Check your internet.";
+                } else if (xhr.status >= 400 && xhr.status < 500) {
+                    errorMessage += "Client error. Please refresh and try again.";
+                } else if (xhr.status >= 500) {
+                    errorMessage += "Server error. Wait a moment and try again.";
+                } else if (status === 'timeout') {
+                    errorMessage += "Request took too long. Try again.";
+                } else {
+                    errorMessage += "Unexpected error occurred.";
+                }
+
+                const errorAlert = $(`
+                    <div class="alert alert-danger fade show mb-3">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        ${errorMessage}
+                        <br><small class="text-muted">Error ${xhr.status}: ${xhr.statusText}</small>
+                    </div>
+                `);
+                $("#commentsModalBody").prepend(errorAlert);
+                
+                // Auto-remove error message
+                setTimeout(() => {
+                    errorAlert.fadeOut();
+                }, 7000);
+                
+                // Reset state
+                isSubmitting = false;
+                setTimeout(processQueue, 1000); // Wait longer before retry
+            })
+            .always(function () {
+                // Re-enable form controls
+                form.find('input, textarea, button').prop('disabled', false);
+                submitBtn.html(originalBtnText);
+            });
+        }
+
+        // Clear state when modal is hidden
+        $('#commentsModal').on('hidden.bs.modal', function () {
+            currentDocumentId = null;
+            currentReviewId = null;
+            currentStepOrder = null;
+            isSubmitting = false;
+            operationQueue = []; // Clear pending operations
+            console.log('Modal closed, all states cleared');
+        });
+
+        // Optional: Periodic refresh only when modal is visible and not busy
+        setInterval(function() {
+            if ($('#commentsModal').hasClass('show') && 
+                currentDocumentId && 
+                !isSubmitting && 
+                operationQueue.length === 0) {
+                
+                console.log('Auto-refreshing comments...');
+                loadComments(currentDocumentId, currentReviewId, currentStepOrder, false);
+            }
+        }, 180000); // Every 3 minutes when idle
 
     });
 </script>
