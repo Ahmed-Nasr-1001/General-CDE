@@ -12,6 +12,12 @@ namespace DataLayer.Models.Enums.Notification
         ReviewApproved = 2,
         ReviewRejected = 3,
         ReviewCompleted = 4,
-        General = 5
+        General = 5,
+        // NEW: Issue notification types
+        IssueCreated = 6,
+        IssueAssigned = 7,
+        IssueUpdated = 8,
+        IssueStatusChanged = 9,
+        IssueCommentAdded = 10
     }
 }
