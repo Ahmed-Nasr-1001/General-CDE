@@ -11,33 +11,34 @@ namespace ACC.Services
         private readonly INotificationRepository _notificationRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly WorkflowStepsUsersService _workflowStepsUsersService;
-        private readonly IWorkflowRepository _workflowRepository; // NEW DEPENDENCY
+        private readonly IWorkflowRepository _workflowRepository;
+        // NEW: Add IssueReviewersService for issue notifications
+        private readonly IssueReviewersService _issueReviewersService;
 
         public NotificationService(
             INotificationRepository notificationRepository,
             UserManager<ApplicationUser> userManager,
             WorkflowStepsUsersService workflowStepsUsersService,
-            IWorkflowRepository workflowRepository) // NEW PARAMETER
+            IWorkflowRepository workflowRepository,
+            IssueReviewersService issueReviewersService) // NEW PARAMETER
         {
             _notificationRepository = notificationRepository;
             _userManager = userManager;
             _workflowStepsUsersService = workflowStepsUsersService;
             _workflowRepository = workflowRepository;
+            _issueReviewersService = issueReviewersService; // NEW DEPENDENCY
         }
 
-        // UPDATED: Now notifies ALL workflow users, not just current step
+        // Existing review notification methods remain the same...
         public async Task NotifyReviewCreatedAsync(Review review)
         {
             try
             {
-                // Get ALL users assigned to ALL steps of the workflow
                 var allWorkflowUsers = await GetAllWorkflowAssignedUsersAsync(review);
-
                 var notifications = new List<Notification>();
 
                 foreach (var user in allWorkflowUsers)
                 {
-                    // Skip the initiator to avoid self-notification
                     if (user.Id == review.InitiatorUserId)
                         continue;
 
@@ -64,12 +65,10 @@ namespace ACC.Services
             }
             catch (Exception ex)
             {
-                // Log the exception
                 throw new Exception($"Failed to send review creation notifications: {ex.Message}", ex);
             }
         }
 
-        // NEW METHOD: Alternative notification method for all workflow users
         public async Task NotifyAllWorkflowUsersAsync(Review review)
         {
             await NotifyReviewCreatedAsync(review);
@@ -91,6 +90,192 @@ namespace ACC.Services
             await _notificationRepository.CreateNotificationAsync(notification);
         }
 
+        // NEW: Issue notification methods
+        public async Task NotifyIssueCreatedAsync(Issue issue, int ProjectId)
+        {
+            try
+            {
+                var assignedReviewers = await GetIssueAssignedReviewersAsync(issue);
+                var notifications = new List<Notification>();
+
+                foreach (var reviewer in assignedReviewers)
+                {
+                    // Skip the initiator to avoid self-notification
+                    if (reviewer.Id == issue.InitiatorID)
+                        continue;
+
+                    var notification = new Notification
+                    {
+                        Title = "New Issue Assigned - Review Required",
+                        Message = $"A new issue '{issue.Title}' has been created and assigned to you for review. Priority: {issue.Priority}",
+                        RecipientId = reviewer.Id,
+                        SenderId = issue.InitiatorID,
+                        IssueId = issue.Id,
+                        Type = NotificationType.IssueCreated,
+                        ActionUrl = $"/ProjectIssue/Index/{ProjectId}",
+                        CreatedAt = DateTime.Now,
+                        Status = NotificationStatus.Unread
+                    };
+
+                    notifications.Add(notification);
+                }
+
+                if (notifications.Any())
+                {
+                    await _notificationRepository.CreateBulkNotificationsAsync(notifications);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to send issue creation notifications: {ex.Message}", ex);
+            }
+        }
+
+        public async Task NotifyIssueUpdatedAsync(Issue issue, string updateMessage)
+        {
+            try
+            {
+                var assignedReviewers = await GetIssueAssignedReviewersAsync(issue);
+                var notifications = new List<Notification>();
+
+                foreach (var reviewer in assignedReviewers)
+                {
+                    // Skip the person who made the update
+                    if (reviewer.Id == issue.InitiatorID)
+                        continue;
+
+                    var notification = new Notification
+                    {
+                        Title = "Issue Updated",
+                        Message = $"Issue '{issue.Title}' has been updated. {updateMessage}",
+                        RecipientId = reviewer.Id,
+                        SenderId = issue.InitiatorID,
+                        IssueId = issue.Id,
+                        Type = NotificationType.IssueUpdated,
+                        ActionUrl = $"/ProjectIssue/Details/{issue.Id}",
+                        CreatedAt = DateTime.Now,
+                        Status = NotificationStatus.Unread
+                    };
+
+                    notifications.Add(notification);
+                }
+
+                if (notifications.Any())
+                {
+                    await _notificationRepository.CreateBulkNotificationsAsync(notifications);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to send issue update notifications: {ex.Message}", ex);
+            }
+        }
+
+        public async Task NotifyIssueStatusChangedAsync(Issue issue, string previousStatus)
+        {
+            try
+            {
+                var assignedReviewers = await GetIssueAssignedReviewersAsync(issue);
+                var notifications = new List<Notification>();
+
+                foreach (var reviewer in assignedReviewers)
+                {
+                    var notification = new Notification
+                    {
+                        Title = "Issue Status Changed",
+                        Message = $"Issue '{issue.Title}' status changed from {previousStatus} to {issue.Status}",
+                        RecipientId = reviewer.Id,
+                        SenderId = issue.InitiatorID,
+                        IssueId = issue.Id,
+                        Type = NotificationType.IssueStatusChanged,
+                        ActionUrl = $"/ProjectIssue/Details/{issue.Id}",
+                        CreatedAt = DateTime.Now,
+                        Status = NotificationStatus.Unread
+                    };
+
+                    notifications.Add(notification);
+                }
+
+                if (notifications.Any())
+                {
+                    await _notificationRepository.CreateBulkNotificationsAsync(notifications);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to send issue status change notifications: {ex.Message}", ex);
+            }
+        }
+
+        public async Task NotifyIssueCommentAddedAsync(Issue issue, IssueComment comment)
+        {
+            try
+            {
+                var assignedReviewers = await GetIssueAssignedReviewersAsync(issue);
+                var notifications = new List<Notification>();
+
+                foreach (var reviewer in assignedReviewers)
+                {
+                    // Skip the comment author
+                    if (reviewer.Id == comment.AuthorId)
+                        continue;
+
+                    var notification = new Notification
+                    {
+                        Title = "New Comment on Issue",
+                        Message = $"A new comment has been added to issue '{issue.Title}' by {comment.Author?.UserName ?? "Unknown"}",
+                        RecipientId = reviewer.Id,
+                        SenderId = comment.AuthorId,
+                        IssueId = issue.Id,
+                        Type = NotificationType.IssueCommentAdded,
+                        ActionUrl = $"/ProjectIssue/Details/{issue.Id}",
+                        CreatedAt = DateTime.Now,
+                        Status = NotificationStatus.Unread
+                    };
+
+                    notifications.Add(notification);
+                }
+
+                if (notifications.Any())
+                {
+                    await _notificationRepository.CreateBulkNotificationsAsync(notifications);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to send issue comment notifications: {ex.Message}", ex);
+            }
+        }
+
+        // NEW: Helper method to get issue assigned reviewers
+        private async Task<List<ApplicationUser>> GetIssueAssignedReviewersAsync(Issue issue)
+        {
+            try
+            {
+                var issueReviewers = _issueReviewersService.GetAll()
+                    .Where(ir => ir.IssueId == issue.Id)
+                    .ToList();
+
+                var reviewers = new List<ApplicationUser>();
+
+                foreach (var issueReviewer in issueReviewers)
+                {
+                    var user = await _userManager.FindByIdAsync(issueReviewer.ReviewerId);
+                    if (user != null)
+                    {
+                        reviewers.Add(user);
+                    }
+                }
+
+                return reviewers;
+            }
+            catch (Exception ex)
+            {
+                return new List<ApplicationUser>();
+            }
+        }
+
+        // Existing methods remain the same...
         public async Task<List<Notification>> GetUserNotificationsAsync(string userId)
         {
             return await _notificationRepository.GetUserNotificationsAsync(userId);
@@ -121,12 +306,11 @@ namespace ACC.Services
             }
         }
 
-        // COMPLETELY REWRITTEN: Now gets users from ALL workflow steps
+        // Existing workflow helper methods remain the same...
         private async Task<List<ApplicationUser>> GetAllWorkflowAssignedUsersAsync(Review review)
         {
             try
             {
-                // Get the complete workflow template with all its steps
                 var workflowTemplate = _workflowRepository.GetById(review.WorkflowTemplateId);
 
                 if (workflowTemplate?.Steps == null || !workflowTemplate.Steps.Any())
@@ -135,17 +319,14 @@ namespace ACC.Services
                 }
 
                 var allUsers = new List<ApplicationUser>();
-                var addedUserIds = new HashSet<string>(); // Prevent duplicates
+                var addedUserIds = new HashSet<string>();
 
-                // Iterate through ALL steps in the workflow
                 foreach (var step in workflowTemplate.Steps)
                 {
-                    // Get all users assigned to this specific step
                     var stepUsers = _workflowStepsUsersService.GetByStepId(step.Id);
 
                     foreach (var stepUser in stepUsers)
                     {
-                        // Only add if we haven't already added this user
                         if (!addedUserIds.Contains(stepUser.UserId))
                         {
                             var user = await _userManager.FindByIdAsync(stepUser.UserId);
@@ -162,12 +343,10 @@ namespace ACC.Services
             }
             catch (Exception ex)
             {
-                // Log the exception
                 return new List<ApplicationUser>();
             }
         }
 
-        // ALTERNATIVE METHOD: Get users from current step only (for step-specific notifications)
         private async Task<List<ApplicationUser>> GetCurrentStepAssignedUsersAsync(Review review)
         {
             if (!review.CurrentStepId.HasValue)

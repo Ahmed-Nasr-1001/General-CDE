@@ -154,6 +154,8 @@ namespace ACC.Controllers
             return date.ToString("MMM dd, yyyy");
         }
 
+        // In the GetTypeDisplayName method, update to include issue types:
+
         private string GetTypeDisplayName(NotificationType type)
         {
             return type switch
@@ -162,8 +164,15 @@ namespace ACC.Controllers
                 NotificationType.ReviewApproved => "Review Approved",
                 NotificationType.ReviewRejected => "Review Rejected",
                 NotificationType.ReviewCompleted => "Review Completed",
+                // NEW: Issue notification display names
+                NotificationType.IssueCreated => "Issue Created",
+                NotificationType.IssueAssigned => "Issue Assigned",
+                NotificationType.IssueUpdated => "Issue Updated",
+                NotificationType.IssueStatusChanged => "Issue Status Changed",
+                NotificationType.IssueCommentAdded => "Comment Added",
                 _ => "Notification"
             };
         }
+
     }
 }
