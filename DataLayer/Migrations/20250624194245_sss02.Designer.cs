@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250623210001_start")]
-    partial class start
+    [Migration("20250624194245_sss02")]
+    partial class sss02
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -501,6 +501,9 @@ namespace DataLayer.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("IssueId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -529,6 +532,8 @@ namespace DataLayer.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("IssueId");
 
                     b.HasIndex("RecipientId");
 
@@ -1202,6 +1207,10 @@ namespace DataLayer.Migrations
 
             modelBuilder.Entity("DataLayer.Models.Notification", b =>
                 {
+                    b.HasOne("DataLayer.Models.Issue", "Issue")
+                        .WithMany()
+                        .HasForeignKey("IssueId");
+
                     b.HasOne("DataLayer.Models.ApplicationUser", "Recipient")
                         .WithMany("ReceivedNotifications")
                         .HasForeignKey("RecipientId")
@@ -1217,6 +1226,8 @@ namespace DataLayer.Migrations
                         .WithMany("SentNotifications")
                         .HasForeignKey("SenderId")
                         .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Issue");
 
                     b.Navigation("Recipient");
 

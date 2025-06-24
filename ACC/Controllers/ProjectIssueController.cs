@@ -24,9 +24,10 @@ namespace ACC.Controllers
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env;
         private readonly UserManager<ApplicationUser> userManager;
+        private readonly INotificationService _notificationService;
         private readonly string _uploadsPath = Path.Combine("wwwroot", "Uploads");
         private readonly string _convertedPath;
-        public ProjectIssueController(IDocumentRepository documentRepository,IIssueRepository issueRepository, IssueReviewersService issueReviewersService, AppDbContext context, IWebHostEnvironment env, UserManager<ApplicationUser> userManager)
+        public ProjectIssueController(IDocumentRepository documentRepository,IIssueRepository issueRepository, IssueReviewersService issueReviewersService, AppDbContext context, IWebHostEnvironment env, UserManager<ApplicationUser> userManager, INotificationService notificationService)
         {
             _documentRepository = documentRepository;
             this.issueRepository = issueRepository;
@@ -34,6 +35,7 @@ namespace ACC.Controllers
             _context = context;
             _env = env;
             this.userManager = userManager;
+            this._notificationService = notificationService;
             _convertedPath = Path.Combine("wwwroot", "Converted");
 
         }
@@ -150,6 +152,11 @@ namespace ACC.Controllers
                 issueReviewersService.Insert(issueReviwers);
             }
             issueReviewersService.Save();
+
+            //For notifications
+            /////
+            await _notificationService.NotifyIssueCreatedAsync(issue, model.ProjectId);
+            /////
 
             if (model.Attachment != null && model.Attachment.Length > 0)
             {
@@ -640,6 +647,28 @@ namespace ACC.Controllers
 
             issueRepository.Update(issue);
             issueRepository.Save();
+
+            // For notifications
+            //////////
+            try
+            {
+                if (previousStatus != model.Status)
+                {
+                    await _notificationService.NotifyIssueStatusChangedAsync(issue, previousStatus.ToString());
+                }
+                else
+                {
+                    await _notificationService.NotifyIssueUpdatedAsync(issue, "Issue details have been updated.");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the exception but don't fail the issue update
+                // You can add logging here if needed
+            }
+
+            /////////////
+            
 
             return RedirectToAction("Index", new { id = issue.ProjectId });
         }

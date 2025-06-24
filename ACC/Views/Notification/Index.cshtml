@@ -1,7 +1,7 @@
 ﻿@model ACC.ViewModels.NotificationVM.NotificationListVM
 @{
     ViewData["Title"] = "Notifications";
-    Layout = "_ProjectLayout";
+    Layout = "_Layout";
 }
 
 <div class="container-fluid p-4">
@@ -42,7 +42,7 @@
                             </div>
                             <div class="notification-actions">
                                 @if (notification.Status == DataLayer.
-                                Models.Enums.Notification.NotificationStatus.Unread)
+                                                        Models.Enums.Notification.NotificationStatus.Unread)
                                 {
                                     <button class="btn btn-sm btn-outline-secondary mark-as-read-btn" data-id="@notification.Id" title="Mark as read">
                                         <i class="bi bi-check"></i>

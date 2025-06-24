@@ -15,33 +15,34 @@ namespace BusinessLogic.Repository.RepositoryClasses
             _context = context;
         }
 
-        public async Task<List<Notification>> GetUserNotificationsAsync(string userId)
-        {
-            return await _context.Notifications
-                .Where(n => n.RecipientId == userId)
-                .Include(n => n.Sender)
-                .Include(n => n.Review)
-                    .ThenInclude(r => r.InitiatorUser)
-                .Include(n => n.Review)
-                    .ThenInclude(r => r.Project)
-                .Include(n => n.Review)
-                    .ThenInclude(r => r.WorkflowTemplate) // NEW: Include workflow template
-                .OrderByDescending(n => n.CreatedAt)
-                .ToListAsync();
-        }
+        //public async Task<List<Notification>> GetUserNotificationsAsync(string userId)
+        //{
+        //    return await _context.Notifications
+        //        .Where(n => n.RecipientId == userId)
+        //        .Include(n => n.Sender)
+        //        .Include(n => n.Review)
+        //            .ThenInclude(r => r.InitiatorUser)
+        //        .Include(n => n.Review)
+        //            .ThenInclude(r => r.Project)
+        //        .Include(n => n.Review)
+        //            .ThenInclude(r => r.WorkflowTemplate) // NEW: Include workflow template
+        //        .OrderByDescending(n => n.CreatedAt)
+        //        .ToListAsync();
+        //}
 
-        public async Task<List<Notification>> GetUnreadNotificationsAsync(string userId)
-        {
-            return await _context.Notifications
-                .Where(n => n.RecipientId == userId && n.Status == NotificationStatus.Unread)
-                .Include(n => n.Sender)
-                .Include(n => n.Review)
-                    .ThenInclude(r => r.InitiatorUser)
-                .Include(n => n.Review)
-                    .ThenInclude(r => r.WorkflowTemplate) // NEW: Include workflow template
-                .OrderByDescending(n => n.CreatedAt)
-                .ToListAsync();
-        }
+
+        //public async Task<List<Notification>> GetUnreadNotificationsAsync(string userId)
+        //{
+        //    return await _context.Notifications
+        //        .Where(n => n.RecipientId == userId && n.Status == NotificationStatus.Unread)
+        //        .Include(n => n.Sender)
+        //        .Include(n => n.Review)
+        //            .ThenInclude(r => r.InitiatorUser)
+        //        .Include(n => n.Review)
+        //            .ThenInclude(r => r.WorkflowTemplate) // NEW: Include workflow template
+        //        .OrderByDescending(n => n.CreatedAt)
+        //        .ToListAsync();
+        //}
 
         public async Task<int> GetUnreadCountAsync(string userId)
         {
@@ -97,5 +98,51 @@ namespace BusinessLogic.Repository.RepositoryClasses
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync();
         }
+
+
+
+
+        //for issue
+        // Add these includes to the GetUserNotificationsAsync method:
+
+        public async Task<List<Notification>> GetUserNotificationsAsync(string userId)
+        {
+            return await _context.Notifications
+                .Where(n => n.RecipientId == userId)
+                .Include(n => n.Sender)
+                .Include(n => n.Review)
+                    .ThenInclude(r => r.InitiatorUser)
+                .Include(n => n.Review)
+                    .ThenInclude(r => r.Project)
+                .Include(n => n.Review)
+                    .ThenInclude(r => r.WorkflowTemplate)
+                // NEW: Include issue-related data
+                .Include(n => n.Issue)
+                    .ThenInclude(i => i.Initiator)
+                .Include(n => n.Issue)
+                    .ThenInclude(i => i.Project)
+                .OrderByDescending(n => n.CreatedAt)
+                .ToListAsync();
+        }
+
+        // Also update GetUnreadNotificationsAsync method similarly:
+        public async Task<List<Notification>> GetUnreadNotificationsAsync(string userId)
+        {
+            return await _context.Notifications
+                .Where(n => n.RecipientId == userId && n.Status == NotificationStatus.Unread)
+                .Include(n => n.Sender)
+                .Include(n => n.Review)
+                    .ThenInclude(r => r.InitiatorUser)
+                .Include(n => n.Review)
+                    .ThenInclude(r => r.WorkflowTemplate)
+                // NEW: Include issue-related data
+                .Include(n => n.Issue)
+                    .ThenInclude(i => i.Initiator)
+                .Include(n => n.Issue)
+                    .ThenInclude(i => i.Project)
+                .OrderByDescending(n => n.CreatedAt)
+                .ToListAsync();
+        }
+
     }
 }

@@ -41,5 +41,10 @@ namespace DataLayer.Models
         [ForeignKey(nameof(Review))]
         public int? ReviewId { get; set; }
         public Review? Review { get; set; }
+
+        // NEW: Optional link to related issue
+        [ForeignKey(nameof(Issue))]
+        public int? IssueId { get; set; }
+        public Issue? Issue { get; set; }
     }
 }

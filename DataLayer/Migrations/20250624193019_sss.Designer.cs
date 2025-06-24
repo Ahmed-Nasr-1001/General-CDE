@@ -4,6 +4,7 @@ using DataLayer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250624193019_sss")]
+    partial class sss
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -498,9 +501,6 @@ namespace DataLayer.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("IssueId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -529,8 +529,6 @@ namespace DataLayer.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("IssueId");
 
                     b.HasIndex("RecipientId");
 
@@ -1204,10 +1202,6 @@ namespace DataLayer.Migrations
 
             modelBuilder.Entity("DataLayer.Models.Notification", b =>
                 {
-                    b.HasOne("DataLayer.Models.Issue", "Issue")
-                        .WithMany()
-                        .HasForeignKey("IssueId");
-
                     b.HasOne("DataLayer.Models.ApplicationUser", "Recipient")
                         .WithMany("ReceivedNotifications")
                         .HasForeignKey("RecipientId")
@@ -1223,8 +1217,6 @@ namespace DataLayer.Migrations
                         .WithMany("SentNotifications")
                         .HasForeignKey("SenderId")
                         .OnDelete(DeleteBehavior.NoAction);
-
-                    b.Navigation("Issue");
 
                     b.Navigation("Recipient");
 
