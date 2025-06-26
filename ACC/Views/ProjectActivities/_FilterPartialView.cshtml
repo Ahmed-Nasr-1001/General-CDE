@@ -1,0 +1,54 @@
+﻿@using ACC.ViewModels.ProjectActivityVM
+@model FilterVM
+
+<form method="post" Asp-controller="ProjectActivities" asp-action="Index">
+    <div id="FilterPanel" class="details-panel">
+        <div class="panel-header">
+            <h5>Filter Activity Data</h5>
+            <button id="closePanel" class="close-btn"><i class="bi bi-x"></i></button>
+        </div>
+
+        <hr>
+
+        <div class="panel-body">
+            <p>
+                <span>From Date:</span>
+                <input type="date" asp-for="startDate" class="form-control"  />
+            </p>
+            <p>
+                <span>To Date:</span>
+                <input type="date" asp-for="endDate" class="form-control" />
+            </p>
+
+            <p>
+                <span>Member :</span>
+                <select asp-for="memberName" class="form-control">
+                    <option value=" ">Display All</option>
+                    @foreach (var item in @Model.memberNamesList)
+                    {
+                        <option value="@item">@item</option>
+                    }
+
+                </select>
+            </p>
+
+
+            <p>
+                <span>Activity Type:</span>
+                <select asp-for="activityType" class="form-control">
+                    <option value=" ">Display All</option>
+                    @foreach (var item in @Model.activityTypesList)
+                    {
+                        <option value="@item">@item</option>
+                    }
+
+                </select>
+            </p>
+
+
+
+
+            <button type="submit" class="btn btn-primary mt-3">Apply Filters</button>
+        </div>
+    </div>
+</form>

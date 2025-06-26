@@ -24,11 +24,11 @@
             width: 250px;
             background-color: #ffffff;
             border-right: 1px solid #e0e0e0;
-            transition: width 0.3s ease; /* Smooth transition for width change */
+            transition: width 0.3s ease;
         }
 
             #sidebar.collapsed {
-                width: 60px; /* Reduced width when collapsed */
+                width: 60px;
             }
 
         .nav-link {
@@ -53,7 +53,7 @@
             }
 
         #sidebar.collapsed .nav-link span {
-            display: none; /* Hide the text when sidebar is collapsed */
+            display: none;
         }
 
         #sidebarToggle {
@@ -68,12 +68,14 @@
             background-color: #ffffff;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             padding: 10px 15px;
+            position: relative;
         }
 
             .navbar .container-fluid {
                 padding: 0 15px;
                 display: flex;
                 align-items: center;
+                width: 100%;
             }
 
             .navbar i {
@@ -97,26 +99,199 @@
         .d-flex {
             background-color: #ffffff;
         }
+
+        .dropdown-menu {
+            border-radius: 12px;
+            min-width: 260px;
+            padding: 8px 0;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            margin-top: 5px;
+        }
+
+            .dropdown-menu .fw-bold {
+                font-size: 1.1rem;
+                color: #2c3e50;
+            }
+
+            .dropdown-menu .small {
+                font-size: 0.875rem;
+                color: #6c757d;
+            }
+
+            .dropdown-menu li:first-child {
+                padding: 12px 20px 8px 20px;
+                background-color: #f8f9fa;
+                border-bottom: 1px solid #e9ecef;
+                margin-bottom: 4px;
+            }
+
+            .dropdown-menu .dropdown-item {
+                padding: 12px 20px;
+                font-size: 0.95rem;
+                display: flex;
+                align-items: center;
+                transition: all 0.2s ease;
+            }
+
+                .dropdown-menu .dropdown-item:hover {
+                    background-color: #fee;
+                    color: #dc3545;
+                    padding-left: 25px;
+                }
+
+                .dropdown-menu .dropdown-item i {
+                    width: 20px;
+                    margin-right: 10px;
+                }
+
+        /* Notification Badge Styles */
+        .notification-badge {
+            background-color: #dc3545;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 16px;
+            text-align: center;
+            font-weight: bold;
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            z-index: 10;
+        }
+
+        .notification-icon {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* Right side navbar positioning */
+        .navbar-right {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .notification-link {
+            color: #0056b3;
+            text-decoration: none;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+            .notification-link:hover {
+                color: #003d82;
+            }
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+        }
+
+            .profile-section .btn {
+                padding: 8px 16px;
+                border-radius: 25px;
+                border: 1px solid #dee2e6;
+                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                transition: all 0.3s ease;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            }
+
+                .profile-section .btn:hover {
+                    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+                    border-color: #0056b3;
+                    box-shadow: 0 4px 8px rgba(0, 86, 179, 0.15);
+                    transform: translateY(-1px);
+                }
+
+                .profile-section .btn span {
+                    font-weight: 500;
+                    color: #495057;
+                    margin-left: 2px;
+                }
+
+                .profile-section .btn i {
+                    color: #0056b3;
+                    font-size: 1.2rem;
+                }
+
+        /* Left side navbar content */
+        .navbar-left {
+            display: flex;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
     <!-- Top Navbar -->
     <nav class="navbar navbar-expand-lg">
-        <button id="sidebarToggle" class="btn btn-outline-primary me-3">
-            <i class="fa-solid fa-arrow-left"></i> <!-- Default to left arrow (sidebar open) -->
-        </button>
-        <div class="container-fluid d-flex align-items-center">
+        <!-- Left side: Toggle + Logo/Title -->
+        <div class="navbar-left">
+            <button id="sidebarToggle" class="btn btn-outline-primary me-3">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
             <i class="fa-solid fa-user-gear text-primary fs-5"></i>
-            <a href="@Url.Action("Index", "Home")" class="ms-2 fw-semibold text-decoration-none text-dark">
-                Account Admin
-            </a>
+            <span class="ms-2 fw-semibold text-dark"></span>
         </div>
+
+        @if (SignInManager.IsSignedIn(User))
+        {
+            <div class="navbar-right">
+                <!-- Notification Bell -->
+                <div class="notification-icon">
+                    <a href="@Url.Action("Index", "Notification")" class="notification-link">
+                        <i class="fa-solid fa-bell"></i>
+                        <span class="notification-badge" id="notification-count" style="display: none;">0</span>
+                    </a>
+                </div>
+
+                <!-- Profile/Logout Dropdown -->
+                <div class="profile-section">
+                    @{
+                        var user = await UserManager.GetUserAsync(User);
+                    }
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle d-flex align-items-center" type="button" id="profileDropdown" onclick="toggleProfileDropdown()" aria-expanded="false">
+                            <i class="fa-solid fa-user-circle fa-lg me-2"></i>
+                            <span>hello @user.FirstName</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="profileDropdown">
+                            <li>
+                                <div class="fw-bold">@user.UserName</div>
+                                <div class="small text-muted">@user.Email</div>
+                            </li>
+                            <li>
+                                <form asp-controller="Account" asp-action="LogOut" method="post" class="d-inline w-100">
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="fa fa-sign-out-alt"></i>Sign Out
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
     </nav>
 
     <div class="d-flex">
         <!-- Sidebar -->
         <nav id="sidebar" class="vh-100 p-3">
             <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a asp-controller="Home" asp-action="Index" class="nav-link text-dark">
+                 
+                            <i class="fa-solid fa-home me-3"></i>
+                            <span>Home</span>
+                       
+                    </a>
+                </li>
                 <li class="nav-item">
                     <a asp-controller="Project" asp-action="index" class="nav-link text-dark">
                         <i class="fa-solid fa-layer-group me-3"></i> <span>Projects</span>
@@ -164,29 +339,123 @@
             @RenderBody()
         </div>
     </div>
- 
-
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const sidebar = document.getElementById("sidebar");
-        const sidebarToggle = document.getElementById("sidebarToggle");
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById("sidebar");
+            const sidebarToggle = document.getElementById("sidebarToggle");
 
-        sidebarToggle.addEventListener("click", function () {
-            sidebar.classList.toggle("collapsed");
+            // Add null checks to prevent errors
+            if (sidebar && sidebarToggle) {
+                // Restore sidebar state from sessionStorage on page load
+                const savedState = sessionStorage.getItem('sidebarCollapsed');
+                if (savedState === 'true') {
+                    sidebar.classList.add('collapsed');
+                    const icon = sidebarToggle.querySelector("i");
+                    if (icon) {
+                        icon.classList.remove("fa-arrow-left");
+                        icon.classList.add("fa-arrow-right");
+                    }
+                    sidebar.setAttribute('aria-expanded', 'false');
+                } else {
+                    sidebar.setAttribute('aria-expanded', 'true');
+                }
 
-            // Toggle the arrow icon based on sidebar state
-            const icon = sidebarToggle.querySelector("i");
-            if (sidebar.classList.contains("collapsed")) {
-                icon.classList.remove("fa-arrow-left");
-                icon.classList.add("fa-arrow-right");
-            } else {
-                icon.classList.remove("fa-arrow-right");
-                icon.classList.add("fa-arrow-left");
+                sidebarToggle.addEventListener("click", function () {
+                    sidebar.classList.toggle("collapsed");
+
+                    // Toggle the arrow icon based on sidebar state
+                    const icon = sidebarToggle.querySelector("i");
+                    if (icon) {
+                        if (sidebar.classList.contains("collapsed")) {
+                            icon.classList.remove("fa-arrow-left");
+                            icon.classList.add("fa-arrow-right");
+                            // Update ARIA attributes for accessibility
+                            sidebar.setAttribute('aria-expanded', 'false');
+                            // Save collapsed state
+                            sessionStorage.setItem('sidebarCollapsed', 'true');
+                        } else {
+                            icon.classList.remove("fa-arrow-right");
+                            icon.classList.add("fa-arrow-left");
+                            // Update ARIA attributes for accessibility
+                            sidebar.setAttribute('aria-expanded', 'true');
+                            // Save expanded state
+                            sessionStorage.setItem('sidebarCollapsed', 'false');
+                        }
+                    }
+                });
             }
         });
+
+        // Profile dropdown toggle function using onclick method
+        function toggleProfileDropdown() {
+            const button = document.getElementById('profileDropdown');
+            const dropdown = button.nextElementSibling;
+            const isVisible = dropdown.classList.contains('show');
+
+            // Close all other dropdowns first
+            document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                menu.classList.remove('show');
+                const btn = menu.previousElementSibling;
+                if (btn) btn.setAttribute('aria-expanded', 'false');
+            });
+
+            // Toggle current dropdown
+            if (!isVisible) {
+                dropdown.classList.add('show');
+                button.setAttribute('aria-expanded', 'true');
+            } else {
+                dropdown.classList.remove('show');
+                button.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.dropdown')) {
+                document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                    menu.classList.remove('show');
+                    const button = menu.previousElementSibling;
+                    if (button) button.setAttribute('aria-expanded', 'false');
+                });
+            }
+        });
+
+        // Load notification count when page loads
+        $(document).ready(function() {
+            loadNotificationCount();
+
+            // Refresh notification count every 30 seconds
+            setInterval(loadNotificationCount, 30000);
+        });
+
+        function loadNotificationCount() {
+            $.ajax({
+                url: '@Url.Action("GetUnreadCount", "Notification")',
+                type: 'GET',
+                success: function(data) {
+                    const countElement = document.getElementById('notification-count');
+                    if (countElement) {
+                        if (data.unreadCount > 0) {
+                            countElement.textContent = data.unreadCount;
+                            countElement.style.display = 'inline';
+                        } else {
+                            countElement.style.display = 'none';
+                        }
+                    }
+                },
+                error: function() {
+                    console.log('Failed to load notification count');
+                }
+            });
+        }
     </script>
+ 
+
+
+   
     @section Scripts {
         <partial name="_ValidationScriptsPartial" />
     }

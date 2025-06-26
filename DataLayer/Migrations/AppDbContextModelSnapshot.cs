@@ -609,6 +609,10 @@ namespace DataLayer.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("UserEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("projectId")
                         .HasColumnType("int");
 
@@ -1217,7 +1221,7 @@ namespace DataLayer.Migrations
                     b.HasOne("DataLayer.Models.Review", "Review")
                         .WithMany()
                         .HasForeignKey("ReviewId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("DataLayer.Models.ApplicationUser", "Sender")
                         .WithMany("SentNotifications")

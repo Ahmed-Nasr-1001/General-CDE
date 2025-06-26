@@ -19,6 +19,7 @@ namespace ACC.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly UserRoleService _userRoleService;
+        private readonly IProjectActivityRepository projectActivityRepository;
         private readonly ICompanyRepository _companyRepository;
 
         public MemberController(
@@ -26,12 +27,14 @@ namespace ACC.Controllers
             SignInManager<ApplicationUser> signInManager,
             RoleManager<ApplicationRole> roleManager,
             UserRoleService userRoleService,
+            IProjectActivityRepository projectActivityRepository,
             ICompanyRepository companyRepository)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
             _userRoleService = userRoleService;
+            this.projectActivityRepository = projectActivityRepository;
             _companyRepository = companyRepository;
         }
         public IActionResult Index(int page = 1, string search = "", int pageSize = 6)
@@ -118,6 +121,10 @@ namespace ACC.Controllers
                     _userRoleService.Save();
 
                     TempData["SuccessMessage"] = "Member added successfully!";
+
+                    var currentUser = await _userManager.GetUserAsync(User);
+                    projectActivityRepository.AddNewActivity(currentUser, null, "Member Added", $"Member \"{user.UserName}\" added to CDE.");
+                    projectActivityRepository.Save();
                     return RedirectToAction("Index", "Member");
 
             }
@@ -146,6 +153,9 @@ namespace ACC.Controllers
                 if (result.Succeeded)
                 {
                     TempData["SuccessMessage"] = "Member deleted successfully!";
+                    var currentUser = await _userManager.GetUserAsync(User);
+                    projectActivityRepository.AddNewActivity(currentUser, null, "Member Removed", $"Member \"{member.UserName}\" removed from CDE.");
+                    projectActivityRepository.Save();
                     return Ok();
                 }
 
@@ -222,7 +232,11 @@ namespace ACC.Controllers
                     _userRoleService.Insert(userRole);
                     _userRoleService.Save();
 
-                
+                    var currentUser = await _userManager.GetUserAsync(User);
+                    projectActivityRepository.AddNewActivity(currentUser, null, "Member Updated", $"Member \"{member.UserName}\" updated.");
+                    projectActivityRepository.Save();
+
+
                 }
 
 

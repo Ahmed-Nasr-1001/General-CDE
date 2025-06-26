@@ -23,25 +23,29 @@ namespace ACC.Controllers.ProjectDetailsController
 
 
 
-        public IActionResult Index(int id , int page = 1, int pageSize = 4, string activityType = null, DateTime? startDate = null, DateTime? endDate = null)
+        public IActionResult Index(int id , FilterVM filter , int page = 1, int pageSize = 4)
         
         {
-            var query = activityRepository.GetByProjectId(id);   
+            var query = activityRepository.GetByProjectId(id);
 
-
-            if (!string.IsNullOrEmpty(activityType))
+            if (!string.IsNullOrEmpty(filter.memberName))
             {
-                query = query.Where(a => a.ActivityType == activityType).ToList();
+                query = query.Where(a => a.UserEmail == filter.memberName).ToList();
             }
 
-            if (startDate.HasValue)
+            if (!string.IsNullOrEmpty(filter.activityType))
             {
-                query = query.Where(a => a.Date >= startDate.Value).ToList();
+                query = query.Where(a => a.ActivityType == filter.activityType).ToList();
             }
 
-            if (endDate.HasValue)
+            if (filter.startDate.HasValue)
             {
-                query = query.Where(a => a.Date <= endDate.Value).ToList();
+                query = query.Where(a => a.Date >= filter.startDate.Value).ToList();
+            }
+
+            if (filter.endDate.HasValue)
+            {
+                query = query.Where(a => a.Date <= filter.endDate.Value).ToList();
             }
 
             int totalRecords = query.Count();
@@ -53,18 +57,25 @@ namespace ACC.Controllers.ProjectDetailsController
                     Date = a.Date,
                     ActivityType = a.ActivityType,
                     ActivityDetail = a.ActivityDetail,
-                    ProjectId = a.projectId??0
+                    ProjectId = a.projectId??0,
+                    UserEmail = a.UserEmail,
                 })
                 .Skip((page - 1) * pageSize)  
                 .Take(pageSize)  
                 .ToList();
 
+            var filterLists = new FilterVM
+            {
+                activityTypesList = activityRepository.GetAll().Where(i=>i.projectId==id).Select(i=>i.ActivityType).Distinct().ToList(),
+                memberNamesList = activityRepository.GetAll().Where(i => i.projectId == id).Select(i=>i.UserEmail).Distinct().ToList(),
+            };
+            ViewBag.filterLists = filterLists;
             ViewBag.TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
             ViewBag.CurrentPage = page;
-            ViewBag.ActivityTypeFilter = activityType;
-            ViewBag.StartDateFilter = startDate;
-            ViewBag.EndDateFilter = endDate;
-            ViewBag.ActivitTypeList = Enum_Helper.GetEnumSelectListWithDisplayNames<ActivityType>();
+            ViewBag.ActivityTypeFilter = filter.activityType;
+            ViewBag.StartDateFilter = filter.startDate;
+            ViewBag.EndDateFilter = filter.endDate;
+
             ViewBag.id = id;
 
             return View("Index", ActivitiesListModel);

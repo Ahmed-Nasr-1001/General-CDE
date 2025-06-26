@@ -225,7 +225,7 @@ namespace DataLayer
                 entity.HasOne(n => n.Review)
                     .WithMany()
                     .HasForeignKey(n => n.ReviewId)
-                    .OnDelete(DeleteBehavior.NoAction);
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
 

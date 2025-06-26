@@ -29,9 +29,10 @@ namespace ACC.Controllers
         private readonly WorkflowStepsUsersService WorkflowStepUserService;
         private readonly ReviewStepUsersService ReviewStepUsersService;
         private readonly INotificationService _notificationService;
+        private readonly IProjetcRepository projetcRepository;
+        private readonly IProjectActivityRepository projectActivityRepository;
 
-
-        public ReviewsController( IDocumentRepository documentRepository ,IReviewRepository reviewRepo, IWorkflowRepository workflowRepo, IWorkFlowStepRepository workFlowStepRepo, FolderService folderService, ReviewDocumentService reviewDocumentService, ReviewFolderService reviewFolderService ,WorkflowStepsUsersService workflowStepsUsersService, ReviewStepUsersService reviewStepUsersService , UserManager<ApplicationUser> userManager, INotificationService notificationService)
+        public ReviewsController( IDocumentRepository documentRepository ,IReviewRepository reviewRepo, IWorkflowRepository workflowRepo, IWorkFlowStepRepository workFlowStepRepo, FolderService folderService, ReviewDocumentService reviewDocumentService, ReviewFolderService reviewFolderService ,WorkflowStepsUsersService workflowStepsUsersService, ReviewStepUsersService reviewStepUsersService , UserManager<ApplicationUser> userManager, INotificationService notificationService , IProjetcRepository projetcRepository , IProjectActivityRepository projectActivityRepository)
         {
             _documentRepository = documentRepository;
             _reviewRepository = reviewRepo;
@@ -44,6 +45,8 @@ namespace ACC.Controllers
             ReviewStepUsersService = reviewStepUsersService;
             UserManager = userManager;
             _notificationService = notificationService;
+            this.projetcRepository = projetcRepository;
+            this.projectActivityRepository = projectActivityRepository;
         }
         public async Task<IActionResult> Index(int id ,string? srchText = null, bool showActive = false ,bool showArchived = false , bool reviewedByMe = false ,bool startedByMe = false , int page = 1, int pageSize = 4)
                      
@@ -257,8 +260,11 @@ namespace ACC.Controllers
                         ReviewStepUsersService.Save();
                     }
 
+                var currentUser = await UserManager.GetUserAsync(User);
+                projectActivityRepository.AddNewActivity(currentUser, model.proId, "Review Added", $"Review \"{model.Name}\" added.");
+                projectActivityRepository.Save();
 
-                    return RedirectToAction("Index", new { id = model.proId, startedByMe = true });
+            return RedirectToAction("Index", new { id = model.proId, startedByMe = true });
                 }
             
 
@@ -274,6 +280,9 @@ namespace ACC.Controllers
             ReviewFromDB.FinalReviewStatus = FinalReviewStatus.Pending;
 
             _reviewRepository.Save();
+            var currentUser = await UserManager.GetUserAsync(User);
+            projectActivityRepository.AddNewActivity(currentUser, ReviewFromDB.ProjectId, "Review Started", $"Review \"{ReviewFromDB.Name}\" started.");
+            projectActivityRepository.Save();
 
             return RedirectToAction("Index", new { id = ReviewFromDB.ProjectId , startedByMe = true });
         }
@@ -438,6 +447,9 @@ namespace ACC.Controllers
                     }
                 }
             }
+            var currentUser = await UserManager.GetUserAsync(User);
+            projectActivityRepository.AddNewActivity(currentUser, ReviewFromDB.ProjectId, "Review Approved", $"Review \"{ReviewFromDB.Name}\" approved at step_\"{CurrentReviewStep}\".");
+            projectActivityRepository.Save();
             return RedirectToAction("Index" , new {id = ReviewFromDB.ProjectId , showActive = true});
         }
 
@@ -503,6 +515,9 @@ namespace ACC.Controllers
 
            
             _reviewRepository.Save();
+            var currentUser = await UserManager.GetUserAsync(User);
+            projectActivityRepository.AddNewActivity(currentUser, ReviewFromDB.ProjectId, "Review Rejected", $"Review \"{ReviewFromDB.Name}\" rejected at step_\"{CurrentReviewStep}\".");
+            projectActivityRepository.Save();
             return RedirectToAction("Index", new { id = ReviewFromDB.ProjectId , showActive = true });
         }
 
@@ -617,9 +632,9 @@ namespace ACC.Controllers
                     StepOrder = c.StepOrder,
                     CreatedAt = c.CreatedAt.ToString()
                 }).ToList();
-
+            var Review = _reviewRepository.GetById(reviewId);
             var CurrentUser = await UserManager.GetUserAsync(User);
-            ViewBag.Initiator = _reviewRepository.GetById(reviewId).InitiatorUserId;
+            ViewBag.Initiator = Review.InitiatorUserId;
             ViewBag.CurrentUserId = CurrentUser.Id;
             var review = _reviewRepository.GetReviewById(reviewId);
             if (CurrentUser.Id != review.InitiatorUserId && review.CurrentStep != null)
@@ -630,9 +645,43 @@ namespace ACC.Controllers
             {
                 ViewBag.CanComment = false;
             }
-
+      
+            projectActivityRepository.AddNewActivity(CurrentUser, Review.ProjectId, "Comment Added", $"Comment added to review \"{Review.Name}\" at step_\"{stepOrder}\".");
+            projectActivityRepository.Save();
             return PartialView("PartialViews/_CommentsPartialView", comments);
         }
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id )
+        {
+            var Review = _reviewRepository.GetById(id);
+            int proId = (int)Review.ProjectId;
+            bool InUse = Review.CurrentStep != null;
+            if (InUse == true)
+            {
+                TempData["ErrorMessage"] = "Can not delete this review because it is already in use.";
+                return RedirectToAction("Index", new { id = proId , startedByMe = true });
+            }
+
+
+
+            var steps = ReviewStepUsersService.GetAll().Where(i => i.ReviewId == id);
+            foreach (var item in steps)
+            {
+                ReviewStepUsersService.Delete(item);              
+            }
+            ReviewStepUsersService.Save();
+
+            _reviewRepository.Delete(Review);
+            _workflowRepository.Save();
+
+            var currentUser = await UserManager.GetUserAsync(User);
+            projectActivityRepository.AddNewActivity(currentUser, Review.ProjectId, "Review Removed", $"Review \"{Review.Name}\" removed.");
+            projectActivityRepository.Save();
+
+            return RedirectToAction("Index", new { id = proId , startedByMe = true });
+
+        }
+
 
         [AcceptVerbs("Get", "Post")]
         public IActionResult VerifyUniqueReviewName(string name, int proId)
@@ -650,9 +699,6 @@ namespace ACC.Controllers
             var firstStep = _workflowRepository.GetFirstStepByTemplateId(workflowTemplateId);
             return firstStep?.Id;
         }
-
-
-
 
     }
 }

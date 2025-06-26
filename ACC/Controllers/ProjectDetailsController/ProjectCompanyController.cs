@@ -3,6 +3,7 @@ using BusinessLogic.Repository.RepositoryInterfaces;
 using DataLayer.Models;
 using DataLayer.Models.ClassHelper;
 using DataLayer.Models.Enums;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
@@ -14,12 +15,16 @@ namespace ACC.Controllers.ProjectDetailsController
     {
         private readonly ICompanyRepository _companyRepository;
         private readonly IProjectActivityRepository _projectActivityRepository;
+        private readonly UserManager<ApplicationUser> userManager;
+        private readonly IProjetcRepository projetcRepository;
 
         //hello
-        public ProjectCompanyController(ICompanyRepository companyRepository, IProjectActivityRepository projectActivityRepository)
+        public ProjectCompanyController(ICompanyRepository companyRepository, IProjectActivityRepository projectActivityRepository , UserManager<ApplicationUser> userManager , IProjetcRepository projetcRepository)
         {
             _companyRepository = companyRepository;
             _projectActivityRepository = projectActivityRepository;
+            this.userManager = userManager;
+            this.projetcRepository = projetcRepository;
         }
 
         // GET: /ProjectCompany/Index/{id}
@@ -104,7 +109,11 @@ namespace ACC.Controllers.ProjectDetailsController
                     return Json(new { success = false, message = "Company not found." });
                 }
                 _companyRepository.AddCompanyToProject(company.Id, id);
-                _projectActivityRepository.AddNewActivity(company, id);
+
+                var currentUser = await userManager.GetUserAsync(User);
+                var projectName = projetcRepository.GetById(id).Name;
+                _projectActivityRepository.AddNewActivity(currentUser, id, "Project Company Added",
+                $"Company \"{company.Name}\" added.");
                 return Json(new { success = true, redirect = Url.Action("Index", new { id }) });
             }
             else
@@ -135,7 +144,7 @@ namespace ACC.Controllers.ProjectDetailsController
                     //Console.WriteLine("Adding company to project...");
                     _companyRepository.AddCompanyToProject(company.Id, id);
                     //Console.WriteLine("Adding activity...");
-                    _projectActivityRepository.AddNewActivity(company, id);
+                
                     return Json(new { success = true, redirect = Url.Action("Index", new { id }) });
                 }
                 catch (Exception ex)
@@ -152,7 +161,7 @@ namespace ACC.Controllers.ProjectDetailsController
         [HasRoles(GlobalAccessLevels.AccountAdmin, projectIdRouteKey: "projectId", ProjectAccessLevels.ProjectAdmin)]
 
 
-        public IActionResult Delete(int? id, int projectId)
+        public async Task<IActionResult> Delete(int? id, int projectId)
         {
             if (id == null)
             {
@@ -165,6 +174,10 @@ namespace ACC.Controllers.ProjectDetailsController
             }
             _companyRepository.RemoveCompanyFromProject(id.Value, projectId);
             TempData["SuccessMessage"] = "Company removed from project successfully.";
+            var currentUser = await userManager.GetUserAsync(User);
+            var projectName = projetcRepository.GetById(projectId).Name;
+            _projectActivityRepository.AddNewActivity(currentUser, projectId, "Project Company Removed",
+            $"Company \"{company.Name}\" removed.");
             return RedirectToAction("Index", new { id = projectId });
         }
 

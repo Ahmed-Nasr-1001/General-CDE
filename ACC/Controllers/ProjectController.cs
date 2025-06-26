@@ -5,8 +5,10 @@ using DataLayer;
 using DataLayer.Models;
 using DataLayer.Models.Enums;
 using Helpers;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Threading.Tasks;
 
 namespace ACC.Controllers
 {
@@ -15,14 +17,16 @@ namespace ACC.Controllers
         private readonly IProjetcRepository projectRepo;
         private readonly IProjectActivityRepository projectActivityRepo;
         private readonly IFolderRepository _folderRepository;
+        private readonly UserManager<ApplicationUser> userManager;
         private readonly AppDbContext _context;
-        public ProjectController(AppDbContext context, IProjetcRepository ProjectRepo ,IProjectActivityRepository projectActivityRepo , IFolderRepository folderRepository)
+        public ProjectController(AppDbContext context, IProjetcRepository ProjectRepo ,IProjectActivityRepository projectActivityRepo , IFolderRepository folderRepository, UserManager<ApplicationUser> userManager)
 
         {
             _context = context;
             projectRepo = ProjectRepo;
             this.projectActivityRepo = projectActivityRepo;
             _folderRepository = folderRepository;
+            this.userManager = userManager;
         }
      
 
@@ -84,7 +88,7 @@ namespace ACC.Controllers
         #region Create Project Action 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AddProject(AddProjectVM projectFromRequest)
+        public async Task<IActionResult> AddProject(AddProjectVM projectFromRequest)
         {
             if (ModelState.IsValid)
             {
@@ -106,7 +110,9 @@ namespace ACC.Controllers
 
                 projectRepo.Insert(newProject);
                 projectRepo.Save();
-                projectActivityRepo.AddNewActivity(newProject , newProject.Id);
+                var currentUser = await userManager.GetUserAsync(User);
+                projectActivityRepo.AddNewActivity(currentUser, newProject.Id , "Project Added", $"Project \"{newProject.Name}\" archived.");
+                projectActivityRepo.Save();
 
 
                 // Create default folders if none exist
@@ -183,13 +189,13 @@ namespace ACC.Controllers
             }
             projectRepo.Delete(deletedProject);
             projectRepo.Save();
-            projectActivityRepo.RemoveActivity(deletedProject);
+         
 
             return Json(new { success = true });  // Return JSON response for AJAX
         }
 
         //[HttpPost]
-        public IActionResult Archive(int id)
+        public async Task<IActionResult> Archive(int id)
         {
             var project = projectRepo.GetById(id);
             if (project == null)
@@ -198,10 +204,13 @@ namespace ACC.Controllers
             }
             project.IsArchived = true;
             projectRepo.Save();
+            var currentUser = await userManager.GetUserAsync(User);
+            projectActivityRepo.AddNewActivity(currentUser, project.Id, "Project Archived", $"Project \"{project.Name}\" archived.");
+            projectActivityRepo.Save();
             return Ok();
         }
 
-        public IActionResult Restore(int id)
+        public async Task<IActionResult> Restore(int id)
         {
             var project = projectRepo.GetById(id);
             if (project == null)
@@ -210,6 +219,9 @@ namespace ACC.Controllers
             }
             project.IsArchived = false;
             projectRepo.Save();
+            var currentUser = await userManager.GetUserAsync(User);
+            projectActivityRepo.AddNewActivity(currentUser, project.Id, "Project Restored", $"Project \"{project.Name}\" restored.");
+            projectActivityRepo.Save();
             return Ok();
         }
 

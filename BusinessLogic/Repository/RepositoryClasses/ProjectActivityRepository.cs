@@ -17,63 +17,25 @@ public class ProjectActivityRepository : GenericRepository<ProjectActivities>, I
     {
         return context.ProjectActivities.Where(p=>p.projectId == Proid).ToList();   
     }
-    public void AddNewActivity(object newObject , int? id)
+    public void AddNewActivity(ApplicationUser user , int? ProjectId , string ActivityType , string ActivityDetail)
     {
-        ProjectActivities newActivity;
-        if (newObject is Project project)
-        {
-            newActivity = new ProjectActivities
+     
+      
+          var  newActivity = new ProjectActivities
             {
-                projectId = project.Id,
+                UserEmail = user.UserName,
+                projectId = ProjectId,
                 Date = DateTime.Now,
-                ActivityType = "Project Created",
-                ActivityDetail = $"{project.Name} has been created.",
+                ActivityType = ActivityType,
+                ActivityDetail = ActivityDetail,
             };
 
             context.Add(newActivity);
             context.SaveChanges();
-        }
-        else if (newObject is Company company)
-            {
-            newActivity = new ProjectActivities
-            {
-                projectId = id??0,
-                Date = DateTime.Now,
-                ActivityType = "Company Added",
-                ActivityDetail = $"{company.Name} has been added."
-            };
-            context.Add(newActivity);
-            context.SaveChanges();
-        }
+       
     }
 
-    public void RemoveActivity(object RemovedObject)
-    {
-        if (RemovedObject is Project project)
-        {
-            ProjectActivities newActivity = new ProjectActivities
-            {
-                Date = DateTime.Now,
-                ActivityType = "Project Removed",
-                ActivityDetail = $"Project '{project.Name}' has been Removed.",
-            };
-
-            context.Add(newActivity);
-            context.SaveChanges();
-        }
-        else if (RemovedObject is Company company)
-        {
-            ProjectActivities newActivity = new ProjectActivities
-            {
-
-                Date = DateTime.Now,
-                ActivityType = "Company Removed",
-                ActivityDetail = $"{company.Name} has been Removed.",
-            };
-            context.Add(newActivity);
-            context.SaveChanges();
-        }
-    }
+   
 
     
 }

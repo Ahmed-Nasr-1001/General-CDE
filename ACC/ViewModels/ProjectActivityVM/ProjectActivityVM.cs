@@ -11,6 +11,8 @@ namespace ACC.ViewModels.ProjectActivityVM
         public string ActivityDetail { get; set; }
 
         public int ProjectId { get; set; }
+
+        public string UserEmail { get; set; }
       
 
     }

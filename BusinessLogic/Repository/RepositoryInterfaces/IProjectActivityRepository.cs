@@ -10,8 +10,8 @@ namespace BusinessLogic.Repository.RepositoryInterfaces
 {
     public interface IProjectActivityRepository : IGenericRepository<ProjectActivities>
     {
-        public void AddNewActivity(object _object , int? id);
-        public void RemoveActivity(object _object);
+        void AddNewActivity(ApplicationUser user, int? ProjectId, string ActivityType, string ActivityDetail);
+
         public List<ProjectActivities> GetByProjectId(int Proid);
 
 

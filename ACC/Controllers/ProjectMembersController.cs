@@ -2,6 +2,7 @@
 using ACC.ViewModels.MemberVM;
 using ACC.ViewModels.MemberVM.MemberVM;
 using ACC.ViewModels.ProjectMembersVM;
+using BusinessLogic.Repository.RepositoryClasses;
 using BusinessLogic.Repository.RepositoryInterfaces;
 using DataLayer;
 using DataLayer.Models;
@@ -19,6 +20,7 @@ namespace ACC.Controllers
     public class ProjectMembersController : Controller
     {
         private readonly IProjetcRepository _projectRepository;
+        private readonly IProjectActivityRepository projectActivityRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
@@ -32,6 +34,7 @@ namespace ACC.Controllers
             UserRoleService userRoleService,
             ICompanyRepository companyRepository,
             IProjetcRepository projectRepository,
+            IProjectActivityRepository projectActivityRepository,
             AppDbContext context)
         {
             _userManager = userManager;
@@ -40,6 +43,7 @@ namespace ACC.Controllers
             _userRoleService = userRoleService;
             _companyRepository = companyRepository;
             _projectRepository = projectRepository;
+            this.projectActivityRepository = projectActivityRepository;
         }
 
 
@@ -131,6 +135,11 @@ namespace ACC.Controllers
 
                 _userRoleService.Save();
 
+                var currentUser = await _userManager.GetUserAsync(User);
+                var ProjectName = _projectRepository.GetById(ProjectId).Name;
+                projectActivityRepository.AddNewActivity(currentUser, ProjectId, "Project Member Added", $"Member \"{memebr.UserName}\" added.");
+                projectActivityRepository.Save();
+
             }
             return RedirectToAction("Index", new { ProjectId = ProjectId });
 
@@ -148,6 +157,12 @@ namespace ACC.Controllers
                 _userRoleService.Delete(relation);
             }
             _userRoleService.Save();
+            var member = await _userManager.FindByIdAsync(id);
+            var memberUserName = member.UserName;
+            var currentUser = await _userManager.GetUserAsync(User);
+            var ProjectName = _projectRepository.GetById(ProjectId).Name;
+            projectActivityRepository.AddNewActivity(currentUser, ProjectId, "Project Member Removed", $"Member \"{memberUserName}\" removed.");
+            projectActivityRepository.Save();
 
             return RedirectToAction("Index", new { ProjectId = ProjectId });
         }
@@ -234,7 +249,11 @@ namespace ACC.Controllers
 
                 _userRoleService.Insert(UpdatedPosition);
                 _userRoleService.Save();
-
+                var memberUserName = user.UserName;
+                var currentUser = await _userManager.GetUserAsync(User);
+                var ProjectName = _projectRepository.GetById(ProjectId).Name;
+                projectActivityRepository.AddNewActivity(currentUser, ProjectId, "Project Member Updated", $"Member \"{memberUserName}\" updated.");
+                projectActivityRepository.Save();
 
                 return Json(new { success = true });
             }

@@ -23,8 +23,9 @@ namespace ACC.Controllers
         private readonly ReviewStepUsersService _reviewStepUsersService;
         private readonly FolderService _folderService;
         private readonly UserRoleService _userRoleService;
+        private readonly IProjectActivityRepository projectActivityRepository;
 
-        public WorkflowController(IWorkflowRepository workflowRepository, IReviewRepository reviewRepository , IWorkFlowStepRepository workFlowStepRepository, UserManager<ApplicationUser> userManager , WorkflowStepsUsersService workflowStepsUsersService, ReviewStepUsersService reviewStepUsersService , FolderService folderService , UserRoleService userRoleService)
+        public WorkflowController(IWorkflowRepository workflowRepository, IReviewRepository reviewRepository , IWorkFlowStepRepository workFlowStepRepository, UserManager<ApplicationUser> userManager , WorkflowStepsUsersService workflowStepsUsersService, ReviewStepUsersService reviewStepUsersService , FolderService folderService , UserRoleService userRoleService, IProjectActivityRepository projectActivityRepository)
         {
             _workflowRepository = workflowRepository;
             _reviewRepository = reviewRepository;
@@ -34,6 +35,7 @@ namespace ACC.Controllers
             _reviewStepUsersService = reviewStepUsersService;
             _folderService = folderService;
             _userRoleService = userRoleService;
+            this.projectActivityRepository = projectActivityRepository;
         }
 
         public IActionResult Index(int id ,string search = null, int page = 1, int pageSize = 4)
@@ -107,6 +109,7 @@ namespace ACC.Controllers
 
             ViewBag.MultiReviwerOptions = Enum_Helper.GetEnumSelectListWithDisplayNames<MultiReviewerOptions>();
             ViewBag.Id = proId;
+
 
             return View("NewWorkflow", vm);
         }
@@ -208,12 +211,11 @@ namespace ACC.Controllers
                     }
                 }
             }
-
-
-
             _workflowStepsUsersService.Save();
 
-
+            var currentUser = await UserManager.GetUserAsync(User);
+            projectActivityRepository.AddNewActivity(currentUser, vm.proId, "Workflow Added", $"Workflow \"{vm.Name}\" added.");
+            projectActivityRepository.Save();
             return RedirectToAction("Index", new { id = vm.proId });
         }
 
@@ -512,10 +514,14 @@ namespace ACC.Controllers
 
             _workflowRepository.Save();
 
+            var currentUser = await UserManager.GetUserAsync(User);
+            projectActivityRepository.AddNewActivity(currentUser, vm.proId, "Workflow Updated", $"Workflow \"{vm.Name}\" updated.");
+            projectActivityRepository.Save();
+
             return RedirectToAction("Index", new { id = vm.proId });
         }
 
-        public IActionResult Delete (int id)
+        public async Task<IActionResult> Delete (int id)
         {
             var workflow = _workflowRepository.GetById(id);
             int proId = workflow.ProjectId;
@@ -543,6 +549,10 @@ namespace ACC.Controllers
 
             _workflowRepository.Delete(workflow);
             _workflowRepository.Save();
+
+            var currentUser = await UserManager.GetUserAsync(User);
+            projectActivityRepository.AddNewActivity(currentUser, workflow.ProjectId, "Workflow Removed", $"Workflow \"{workflow.Name}\" removed.");
+            projectActivityRepository.Save();
 
             return RedirectToAction("Index", new { id = proId });
 

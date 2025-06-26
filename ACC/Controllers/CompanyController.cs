@@ -3,6 +3,7 @@ using BusinessLogic.Repository.RepositoryInterfaces;
 using DataLayer.Models;
 using DataLayer.Models.Enums;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using System.Globalization;
@@ -13,11 +14,13 @@ namespace ACC.Controllers
     {
         private readonly ICompanyRepository _companyRepository;
         private readonly IProjectActivityRepository _projectActivityRepository;
+        private readonly UserManager<ApplicationUser> userManager;
 
-        public CompanyController(ICompanyRepository companyRepository, IProjectActivityRepository projectActivityRepository)
+        public CompanyController(ICompanyRepository companyRepository, IProjectActivityRepository projectActivityRepository , UserManager<ApplicationUser> userManager)
         {
             _companyRepository = companyRepository;
             _projectActivityRepository = projectActivityRepository;
+            this.userManager = userManager;
         }
 
 
@@ -82,7 +85,7 @@ namespace ACC.Controllers
         // POST: Company/SaveNew
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SaveNew(CompanyVM model)
+        public async Task<IActionResult> SaveNew(CompanyVM model)
         {
             if (!ModelState.IsValid)
             {
@@ -106,7 +109,11 @@ namespace ACC.Controllers
 
                 _companyRepository.Insert(company);
                 _companyRepository.Save();
-                _projectActivityRepository.AddNewActivity(company, null);
+
+                var currentUser = await userManager.GetUserAsync(User);
+                _projectActivityRepository.AddNewActivity(currentUser, null, "Company Added", $"Company \"{company.Name}\" added to CDE.");
+                _projectActivityRepository.Save();
+
 
                 return RedirectToAction("Index");
             }
@@ -120,7 +127,7 @@ namespace ACC.Controllers
 
         // POST: Company/Delete
         [HttpPost]
-        public IActionResult Delete(int? id)
+        public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
             {
@@ -133,9 +140,13 @@ namespace ACC.Controllers
                 return NotFound();
             }
 
+
             _companyRepository.Delete(company);
             _companyRepository.Save();
-            _projectActivityRepository.RemoveActivity(company);
+
+            var currentUser = await userManager.GetUserAsync(User);
+            _projectActivityRepository.AddNewActivity(currentUser, null, "Company Removed", $"Company \"{company.Name}\" removed from CDE.");
+            _projectActivityRepository.Save();
 
             TempData["SuccessMessage"] = "Company deleted successfully.";
             return RedirectToAction("Index");
@@ -191,7 +202,7 @@ namespace ACC.Controllers
 
 
         [HttpPost]
-        public IActionResult UpdateCompany(int id, [FromBody] UpdatedCompanyVM model)
+        public async Task<IActionResult> UpdateCompany(int id, [FromBody] UpdatedCompanyVM model)
         {
             if (!ModelState.IsValid)
             {
@@ -216,6 +227,10 @@ namespace ACC.Controllers
 
                 _companyRepository.Update(company);
                 _companyRepository.Save();
+
+                var currentUser = await userManager.GetUserAsync(User);
+                _projectActivityRepository.AddNewActivity(currentUser, null, "Company Updated", $"Company \"{company.Name}\" updated.");
+                _projectActivityRepository.Save();
 
                 return Json(new { success = true, message = "Company updated successfully." });
             }

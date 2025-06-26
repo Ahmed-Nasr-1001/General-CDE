@@ -6,6 +6,7 @@
 }
 @{
     Layout = "_ProjectLayout";
+    var filterLists = ViewBag.filterLists;
 }
 
 <!DOCTYPE html>
@@ -90,53 +91,14 @@
             </button>
         </div>
 
-        <!-- Form for filtering -->
-        <form method="get" action="/ProjectActivities/Index">
-            <div id="FilterPanel" class="details-panel">
-                <div class="panel-header">
-                    <h5>Filter Activity Data</h5>
-                    <button id="closePanel" class="close-btn"><i class="bi bi-x"></i></button>
-                </div>
-
-                <hr>
-
-                <div class="panel-body">
-                    <p>
-                        <span>From Date:</span>
-                        <input type="date" name="startDate" class="form-control" value="@ViewBag.StartDateFilter?.ToString("yyyy-MM-dd")" />
-                    </p>
-                    <p>
-                        <span>To Date:</span>
-                        <input type="date" name="endDate" class="form-control" value="@ViewBag.EndDateFilter?.ToString("yyyy-MM-dd")" />
-                    </p>
-                  
-
-
-                    <p>
-                        <span>Activity Type:</span>
-                        <select name="activityType" class="form-control">
-                            <option value=" " >Display All</option>
-                            @foreach (var item in ViewBag.ActivitTypeList)
-                            {
-                                <option value="@item.Value">@item.Text</option>
-                            }
-
-                        </select>
-                    </p>
-
-  
-
-
-                    <button type="submit" class="btn btn-primary mt-3">Apply Filters</button>
-                </div>
-            </div>
-        </form>
+       <partial name="_FilterPartialView" model="filterLists"/>
 
         <!-- Activities Table -->
         <table id="activitiesTable" class="table table-bordered">
 
             <thead>
                 <tr>
+                    <th>Member</th>
                     <th>Date</th>
                     <th>Activity Type</th>
                     <th>Activity Details</th>
@@ -146,6 +108,7 @@
                 @foreach (var item in Model)
                 {
                     <tr class="company-row" data-id="@item.Id">
+                        <td>@item.UserEmail</td>
                         <td>@item.Date</td>
                         <td>@item.ActivityType</td>
                         <td>@item.ActivityDetail</td>
@@ -206,7 +169,7 @@
 
     </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
+    @* <script>
         $(document).ready(function () {
             // Open the filter panel
             $("#btn_filters").click(function () {
@@ -219,7 +182,7 @@
                 $("#FilterPanel").removeClass("show").addClass("hidden");
             });
         });
-    </script>
+    </script> *@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
