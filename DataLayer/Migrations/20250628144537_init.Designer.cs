@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250626173453_init")]
+    [Migration("20250628144537_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -170,6 +170,9 @@ namespace DataLayer.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int?>("TeamId")
+                        .HasColumnType("int");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -179,6 +182,8 @@ namespace DataLayer.Migrations
                     b.HasIndex("ProjectId");
 
                     b.HasIndex("RoleId");
+
+                    b.HasIndex("TeamId");
 
                     b.HasIndex("UserId");
 
@@ -287,6 +292,21 @@ namespace DataLayer.Migrations
                     b.ToTable("DocumentVersions");
                 });
 
+            modelBuilder.Entity("DataLayer.Models.Enums.TeamMember", b =>
+                {
+                    b.Property<int>("TeamId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("TeamId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("TeamMembers");
+                });
+
             modelBuilder.Entity("DataLayer.Models.Folder", b =>
                 {
                     b.Property<int>("Id")
@@ -315,9 +335,14 @@ namespace DataLayer.Migrations
                     b.Property<int>("ProjectId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("TeamId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("FolderId");
+
+                    b.HasIndex("TeamId");
 
                     b.ToTable("Folders");
                 });
@@ -821,6 +846,32 @@ namespace DataLayer.Migrations
                     b.ToTable("ReviewStepUsers");
                 });
 
+            modelBuilder.Entity("DataLayer.Models.Team", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ParentFolderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentFolderId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("Teams");
+                });
+
             modelBuilder.Entity("DataLayer.Models.Transmittal", b =>
                 {
                     b.Property<int>("Id")
@@ -1086,6 +1137,10 @@ namespace DataLayer.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("DataLayer.Models.Team", "Team")
+                        .WithMany()
+                        .HasForeignKey("TeamId");
+
                     b.HasOne("DataLayer.Models.ApplicationUser", "User")
                         .WithMany("UserRoles")
                         .HasForeignKey("UserId")
@@ -1095,6 +1150,8 @@ namespace DataLayer.Migrations
                     b.Navigation("Project");
 
                     b.Navigation("Role");
+
+                    b.Navigation("Team");
 
                     b.Navigation("User");
                 });
@@ -1121,11 +1178,34 @@ namespace DataLayer.Migrations
                     b.Navigation("Document");
                 });
 
+            modelBuilder.Entity("DataLayer.Models.Enums.TeamMember", b =>
+                {
+                    b.HasOne("DataLayer.Models.Team", "Team")
+                        .WithMany("Members")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DataLayer.Models.ApplicationUser", "User")
+                        .WithMany("TeamMembers")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Team");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("DataLayer.Models.Folder", b =>
                 {
                     b.HasOne("DataLayer.Models.Folder", null)
                         .WithMany("SubFolders")
                         .HasForeignKey("FolderId");
+
+                    b.HasOne("DataLayer.Models.Team", null)
+                        .WithMany("Folders")
+                        .HasForeignKey("TeamId");
                 });
 
             modelBuilder.Entity("DataLayer.Models.Issue", b =>
@@ -1414,6 +1494,25 @@ namespace DataLayer.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("DataLayer.Models.Team", b =>
+                {
+                    b.HasOne("DataLayer.Models.Folder", "ParentFolder")
+                        .WithMany()
+                        .HasForeignKey("ParentFolderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DataLayer.Models.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ParentFolder");
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("DataLayer.Models.TransmittalDocument", b =>
                 {
                     b.HasOne("DataLayer.Models.DocumentVersion", "DocumentVersion")
@@ -1531,6 +1630,8 @@ namespace DataLayer.Migrations
 
                     b.Navigation("SentNotifications");
 
+                    b.Navigation("TeamMembers");
+
                     b.Navigation("UserRoles");
 
                     b.Navigation("WorkflowSteps");
@@ -1593,6 +1694,13 @@ namespace DataLayer.Migrations
             modelBuilder.Entity("DataLayer.Models.ReviewDocument", b =>
                 {
                     b.Navigation("Comments");
+                });
+
+            modelBuilder.Entity("DataLayer.Models.Team", b =>
+                {
+                    b.Navigation("Folders");
+
+                    b.Navigation("Members");
                 });
 
             modelBuilder.Entity("DataLayer.Models.Transmittal", b =>

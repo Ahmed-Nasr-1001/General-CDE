@@ -49,29 +49,6 @@ namespace DataLayer.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Folders",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ParentFolderId = table.Column<int>(type: "int", nullable: true),
-                    ProjectId = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    FolderId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Folders", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Folders_Folders_FolderId",
-                        column: x => x.FolderId,
-                        principalTable: "Folders",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "IfcFiles",
                 columns: table => new
                 {
@@ -189,30 +166,6 @@ namespace DataLayer.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Documents",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    FileType = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    FolderId = table.Column<int>(type: "int", nullable: false),
-                    ProjectId = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Documents", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Documents_Folders_FolderId",
-                        column: x => x.FolderId,
-                        principalTable: "Folders",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ProjectActivities",
                 columns: table => new
                 {
@@ -325,38 +278,6 @@ namespace DataLayer.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetUserRoles",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ProjectId = table.Column<int>(type: "int", nullable: true),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUserRoles", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AspNetUserRoles_AspNetRoles_RoleId",
-                        column: x => x.RoleId,
-                        principalTable: "AspNetRoles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AspNetUserRoles_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AspNetUserRoles_Projects_ProjectId",
-                        column: x => x.ProjectId,
-                        principalTable: "Projects",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "AspNetUserTokens",
                 columns: table => new
                 {
@@ -399,6 +320,186 @@ namespace DataLayer.Migrations
                         principalTable: "Projects",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WorkflowStepTemplates",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    WorkflowTemplateId = table.Column<int>(type: "int", nullable: false),
+                    StepOrder = table.Column<int>(type: "int", nullable: true),
+                    TimeAllowed = table.Column<int>(type: "int", nullable: false),
+                    selectedPositionId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ReviewersType = table.Column<int>(type: "int", nullable: true),
+                    MinReviewers = table.Column<int>(type: "int", nullable: true),
+                    MultiReviewerOptions = table.Column<int>(type: "int", nullable: true),
+                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WorkflowStepTemplates", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_WorkflowStepTemplates_AspNetUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_WorkflowStepTemplates_WorkflowTemplates_WorkflowTemplateId",
+                        column: x => x.WorkflowTemplateId,
+                        principalTable: "WorkflowTemplates",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Reviews",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ProjectId = table.Column<int>(type: "int", nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    WorkflowTemplateId = table.Column<int>(type: "int", nullable: false),
+                    InitiatorUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CurrentStepId = table.Column<int>(type: "int", nullable: true),
+                    FinalReviewStatus = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reviews", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Reviews_AspNetUsers_InitiatorUserId",
+                        column: x => x.InitiatorUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Reviews_Projects_ProjectId",
+                        column: x => x.ProjectId,
+                        principalTable: "Projects",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Reviews_WorkflowStepTemplates_CurrentStepId",
+                        column: x => x.CurrentStepId,
+                        principalTable: "WorkflowStepTemplates",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Reviews_WorkflowTemplates_WorkflowTemplateId",
+                        column: x => x.WorkflowTemplateId,
+                        principalTable: "WorkflowTemplates",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WorkflowStepUsers",
+                columns: table => new
+                {
+                    StepId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    IsApproved = table.Column<bool>(type: "bit", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WorkflowStepUsers", x => new { x.UserId, x.StepId });
+                    table.ForeignKey(
+                        name: "FK_WorkflowStepUsers_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_WorkflowStepUsers_WorkflowStepTemplates_StepId",
+                        column: x => x.StepId,
+                        principalTable: "WorkflowStepTemplates",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ReviewStepUsers",
+                columns: table => new
+                {
+                    StepId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ReviewId = table.Column<int>(type: "int", nullable: false),
+                    IsApproved = table.Column<bool>(type: "bit", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReviewStepUsers", x => new { x.UserId, x.StepId, x.ReviewId });
+                    table.ForeignKey(
+                        name: "FK_ReviewStepUsers_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ReviewStepUsers_Reviews_ReviewId",
+                        column: x => x.ReviewId,
+                        principalTable: "Reviews",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ReviewStepUsers_WorkflowStepTemplates_StepId",
+                        column: x => x.StepId,
+                        principalTable: "WorkflowStepTemplates",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserRoles",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ProjectId = table.Column<int>(type: "int", nullable: true),
+                    TeamId = table.Column<int>(type: "int", nullable: true),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserRoles", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetUserRoles_AspNetRoles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "AspNetRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AspNetUserRoles_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AspNetUserRoles_Projects_ProjectId",
+                        column: x => x.ProjectId,
+                        principalTable: "Projects",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Documents",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FileType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FolderId = table.Column<int>(type: "int", nullable: false),
+                    ProjectId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Documents", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -465,32 +566,27 @@ namespace DataLayer.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "WorkflowStepTemplates",
+                name: "ReviewDocuments",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    WorkflowTemplateId = table.Column<int>(type: "int", nullable: false),
-                    StepOrder = table.Column<int>(type: "int", nullable: true),
-                    TimeAllowed = table.Column<int>(type: "int", nullable: false),
-                    selectedPositionId = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ReviewersType = table.Column<int>(type: "int", nullable: true),
-                    MinReviewers = table.Column<int>(type: "int", nullable: true),
-                    MultiReviewerOptions = table.Column<int>(type: "int", nullable: true),
-                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    ReviewId = table.Column<int>(type: "int", nullable: false),
+                    DocumentId = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsApproved = table.Column<bool>(type: "bit", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_WorkflowStepTemplates", x => x.Id);
+                    table.PrimaryKey("PK_ReviewDocuments", x => new { x.ReviewId, x.DocumentId });
                     table.ForeignKey(
-                        name: "FK_WorkflowStepTemplates_AspNetUsers_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        name: "FK_ReviewDocuments_Documents_DocumentId",
+                        column: x => x.DocumentId,
+                        principalTable: "Documents",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_WorkflowStepTemplates_WorkflowTemplates_WorkflowTemplateId",
-                        column: x => x.WorkflowTemplateId,
-                        principalTable: "WorkflowTemplates",
+                        name: "FK_ReviewDocuments_Reviews_ReviewId",
+                        column: x => x.ReviewId,
+                        principalTable: "Reviews",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -605,72 +701,6 @@ namespace DataLayer.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Reviews",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ProjectId = table.Column<int>(type: "int", nullable: true),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    WorkflowTemplateId = table.Column<int>(type: "int", nullable: false),
-                    InitiatorUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    CurrentStepId = table.Column<int>(type: "int", nullable: true),
-                    FinalReviewStatus = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Reviews", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Reviews_AspNetUsers_InitiatorUserId",
-                        column: x => x.InitiatorUserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Reviews_Projects_ProjectId",
-                        column: x => x.ProjectId,
-                        principalTable: "Projects",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Reviews_WorkflowStepTemplates_CurrentStepId",
-                        column: x => x.CurrentStepId,
-                        principalTable: "WorkflowStepTemplates",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Reviews_WorkflowTemplates_WorkflowTemplateId",
-                        column: x => x.WorkflowTemplateId,
-                        principalTable: "WorkflowTemplates",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "WorkflowStepUsers",
-                columns: table => new
-                {
-                    StepId = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    IsApproved = table.Column<bool>(type: "bit", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_WorkflowStepUsers", x => new { x.UserId, x.StepId });
-                    table.ForeignKey(
-                        name: "FK_WorkflowStepUsers_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_WorkflowStepUsers_WorkflowStepTemplates_StepId",
-                        column: x => x.StepId,
-                        principalTable: "WorkflowStepTemplates",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Notifications",
                 columns: table => new
                 {
@@ -712,91 +742,6 @@ namespace DataLayer.Migrations
                         principalTable: "Reviews",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ReviewDocuments",
-                columns: table => new
-                {
-                    ReviewId = table.Column<int>(type: "int", nullable: false),
-                    DocumentId = table.Column<int>(type: "int", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IsApproved = table.Column<bool>(type: "bit", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ReviewDocuments", x => new { x.ReviewId, x.DocumentId });
-                    table.ForeignKey(
-                        name: "FK_ReviewDocuments_Documents_DocumentId",
-                        column: x => x.DocumentId,
-                        principalTable: "Documents",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ReviewDocuments_Reviews_ReviewId",
-                        column: x => x.ReviewId,
-                        principalTable: "Reviews",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ReviewsFolders",
-                columns: table => new
-                {
-                    ReviewId = table.Column<int>(type: "int", nullable: false),
-                    FolderId = table.Column<int>(type: "int", nullable: false),
-                    Comment = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IsApproved = table.Column<bool>(type: "bit", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ReviewsFolders", x => new { x.ReviewId, x.FolderId });
-                    table.ForeignKey(
-                        name: "FK_ReviewsFolders_Folders_FolderId",
-                        column: x => x.FolderId,
-                        principalTable: "Folders",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ReviewsFolders_Reviews_ReviewId",
-                        column: x => x.ReviewId,
-                        principalTable: "Reviews",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ReviewStepUsers",
-                columns: table => new
-                {
-                    StepId = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ReviewId = table.Column<int>(type: "int", nullable: false),
-                    IsApproved = table.Column<bool>(type: "bit", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ReviewStepUsers", x => new { x.UserId, x.StepId, x.ReviewId });
-                    table.ForeignKey(
-                        name: "FK_ReviewStepUsers_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_ReviewStepUsers_Reviews_ReviewId",
-                        column: x => x.ReviewId,
-                        principalTable: "Reviews",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_ReviewStepUsers_WorkflowStepTemplates_StepId",
-                        column: x => x.StepId,
-                        principalTable: "WorkflowStepTemplates",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -842,6 +787,108 @@ namespace DataLayer.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Folders",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ParentFolderId = table.Column<int>(type: "int", nullable: true),
+                    ProjectId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FolderId = table.Column<int>(type: "int", nullable: true),
+                    TeamId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Folders", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Folders_Folders_FolderId",
+                        column: x => x.FolderId,
+                        principalTable: "Folders",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ReviewsFolders",
+                columns: table => new
+                {
+                    ReviewId = table.Column<int>(type: "int", nullable: false),
+                    FolderId = table.Column<int>(type: "int", nullable: false),
+                    Comment = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsApproved = table.Column<bool>(type: "bit", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReviewsFolders", x => new { x.ReviewId, x.FolderId });
+                    table.ForeignKey(
+                        name: "FK_ReviewsFolders_Folders_FolderId",
+                        column: x => x.FolderId,
+                        principalTable: "Folders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ReviewsFolders_Reviews_ReviewId",
+                        column: x => x.ReviewId,
+                        principalTable: "Reviews",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Teams",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ProjectId = table.Column<int>(type: "int", nullable: false),
+                    ParentFolderId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Teams", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Teams_Folders_ParentFolderId",
+                        column: x => x.ParentFolderId,
+                        principalTable: "Folders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Teams_Projects_ProjectId",
+                        column: x => x.ProjectId,
+                        principalTable: "Projects",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TeamMembers",
+                columns: table => new
+                {
+                    TeamId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TeamMembers", x => new { x.TeamId, x.UserId });
+                    table.ForeignKey(
+                        name: "FK_TeamMembers_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TeamMembers_Teams_TeamId",
+                        column: x => x.TeamId,
+                        principalTable: "Teams",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -873,6 +920,11 @@ namespace DataLayer.Migrations
                 name: "IX_AspNetUserRoles_RoleId",
                 table: "AspNetUserRoles",
                 column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUserRoles_TeamId",
+                table: "AspNetUserRoles",
+                column: "TeamId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetUserRoles_UserId",
@@ -910,6 +962,11 @@ namespace DataLayer.Migrations
                 name: "IX_Folders_FolderId",
                 table: "Folders",
                 column: "FolderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Folders_TeamId",
+                table: "Folders",
+                column: "TeamId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_IssueComments_AuthorId",
@@ -1047,6 +1104,21 @@ namespace DataLayer.Migrations
                 column: "StepId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_TeamMembers_UserId",
+                table: "TeamMembers",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Teams_ParentFolderId",
+                table: "Teams",
+                column: "ParentFolderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Teams_ProjectId",
+                table: "Teams",
+                column: "ProjectId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TransmittalDocuments_DocumentVersionId",
                 table: "TransmittalDocuments",
                 column: "DocumentVersionId");
@@ -1075,11 +1147,41 @@ namespace DataLayer.Migrations
                 name: "IX_WorkflowTemplates_ProjectId",
                 table: "WorkflowTemplates",
                 column: "ProjectId");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_AspNetUserRoles_Teams_TeamId",
+                table: "AspNetUserRoles",
+                column: "TeamId",
+                principalTable: "Teams",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Documents_Folders_FolderId",
+                table: "Documents",
+                column: "FolderId",
+                principalTable: "Folders",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Folders_Teams_TeamId",
+                table: "Folders",
+                column: "TeamId",
+                principalTable: "Teams",
+                principalColumn: "Id");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_Teams_Projects_ProjectId",
+                table: "Teams");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Folders_Teams_TeamId",
+                table: "Folders");
+
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -1129,6 +1231,9 @@ namespace DataLayer.Migrations
                 name: "ReviewStepUsers");
 
             migrationBuilder.DropTable(
+                name: "TeamMembers");
+
+            migrationBuilder.DropTable(
                 name: "TransmittalDocuments");
 
             migrationBuilder.DropTable(
@@ -1159,9 +1264,6 @@ namespace DataLayer.Migrations
                 name: "WorkflowStepTemplates");
 
             migrationBuilder.DropTable(
-                name: "Folders");
-
-            migrationBuilder.DropTable(
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
@@ -1172,6 +1274,12 @@ namespace DataLayer.Migrations
 
             migrationBuilder.DropTable(
                 name: "Projects");
+
+            migrationBuilder.DropTable(
+                name: "Teams");
+
+            migrationBuilder.DropTable(
+                name: "Folders");
         }
     }
 }

@@ -85,7 +85,7 @@ namespace ACC.Services
         }
         public ApplicationRole GetProjectAccessLevel(string Userid, int ProjId)
         {
-            return _context.Set<ApplicationUserRole>().Include(i => i.Role).FirstOrDefault(i => i.UserId == Userid && i.ProjectId == ProjId && i.Role.ProjectAccessLevel == true).Role;
+            return _context.Set<ApplicationUserRole>().Include(i => i.Role).FirstOrDefault(i => i.UserId == Userid && i.ProjectId == ProjId && i.Role.ProjectAccessLevel == true)?.Role;
         }
 
         public async Task<ApplicationUser> GetUserWithProjectAccessLevel(string Name, int ProjId)
