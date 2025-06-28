@@ -4,6 +4,7 @@ using DataLayer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250628081528_addingteams")]
+    partial class addingteams
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -130,6 +133,9 @@ namespace DataLayer.Migrations
                     b.Property<int?>("Status")
                         .HasColumnType("int");
 
+                    b.Property<int?>("TeamId")
+                        .HasColumnType("int");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
 
@@ -149,6 +155,8 @@ namespace DataLayer.Migrations
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
+                    b.HasIndex("TeamId");
+
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
@@ -167,9 +175,6 @@ namespace DataLayer.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int?>("TeamId")
-                        .HasColumnType("int");
-
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -179,8 +184,6 @@ namespace DataLayer.Migrations
                     b.HasIndex("ProjectId");
 
                     b.HasIndex("RoleId");
-
-                    b.HasIndex("TeamId");
 
                     b.HasIndex("UserId");
 
@@ -287,21 +290,6 @@ namespace DataLayer.Migrations
                     b.HasIndex("DocumentId");
 
                     b.ToTable("DocumentVersions");
-                });
-
-            modelBuilder.Entity("DataLayer.Models.Enums.TeamMember", b =>
-                {
-                    b.Property<int>("TeamId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("TeamId", "UserId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("TeamMembers");
                 });
 
             modelBuilder.Entity("DataLayer.Models.Folder", b =>
@@ -1119,6 +1107,10 @@ namespace DataLayer.Migrations
                         .WithMany()
                         .HasForeignKey("CompanyId");
 
+                    b.HasOne("DataLayer.Models.Team", null)
+                        .WithMany("Members")
+                        .HasForeignKey("TeamId");
+
                     b.Navigation("Company");
                 });
 
@@ -1134,10 +1126,6 @@ namespace DataLayer.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DataLayer.Models.Team", "Team")
-                        .WithMany()
-                        .HasForeignKey("TeamId");
-
                     b.HasOne("DataLayer.Models.ApplicationUser", "User")
                         .WithMany("UserRoles")
                         .HasForeignKey("UserId")
@@ -1147,8 +1135,6 @@ namespace DataLayer.Migrations
                     b.Navigation("Project");
 
                     b.Navigation("Role");
-
-                    b.Navigation("Team");
 
                     b.Navigation("User");
                 });
@@ -1173,25 +1159,6 @@ namespace DataLayer.Migrations
                         .IsRequired();
 
                     b.Navigation("Document");
-                });
-
-            modelBuilder.Entity("DataLayer.Models.Enums.TeamMember", b =>
-                {
-                    b.HasOne("DataLayer.Models.Team", "Team")
-                        .WithMany("Members")
-                        .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DataLayer.Models.ApplicationUser", "User")
-                        .WithMany("TeamMembers")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Team");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("DataLayer.Models.Folder", b =>
@@ -1626,8 +1593,6 @@ namespace DataLayer.Migrations
                     b.Navigation("ReviewStepUsers");
 
                     b.Navigation("SentNotifications");
-
-                    b.Navigation("TeamMembers");
 
                     b.Navigation("UserRoles");
 

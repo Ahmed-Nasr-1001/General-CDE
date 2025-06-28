@@ -40,7 +40,7 @@ namespace DataLayer.Models
         public int AccessLevelId { get; set; }
         public AccessLevel AccessLevel { get; set; }
 
-
+        public List<TeamMember> TeamMembers { get; set; }
 
         //For Notifications
         public List<Notification>? ReceivedNotifications { get; set; } = new List<Notification>();
