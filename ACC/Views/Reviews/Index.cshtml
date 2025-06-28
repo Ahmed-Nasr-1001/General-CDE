@@ -45,7 +45,7 @@
 
         /* Pagination styling */
         .pagination .btn {
-        margin: 0 2px;
+        margin: 0 px;
         }
 
         .pagination .btn-primary {
@@ -104,7 +104,11 @@
         	color: #007bff;
         	border-bottom: 2px solid #007bff;
         }
-
+         .table-container {
+            min-height: 350px;
+            max-height: 350px; /* optional, to add scroll if too long */
+            overflow-y:  auto;
+        }
       
 
 
@@ -133,31 +137,30 @@
     <hr />
 
     <div class="d-flex justify-content-between align-items-center mb-3">
-            @if(hasAdminAccess)
-            {
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#CreateReviewModal">
-              <i class="bi bi-plus-lg"></i> Create Review
-             </button>
-                
-            }
+    @if (hasAdminAccess)
+    {
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#CreateReviewModal" style="height: 40px;">
+            <i class="bi bi-plus-lg"></i> Create Review
+        </button>
+    }
 
-            <div class="d-flex justify-content-between button-group mb-3">
-                <form asp-action="Index" asp-controller="Reviews" method="get" class="d-flex">
-                    <div class="search-container">
-                        <input type="text" class="form-control" name="srchText" placeholder="Search" value="@Context.Request.Query["srchText"]" />
-                        <input type="hidden" name="showActive" value="@((ViewBag.ShowActive ?? false).ToString().ToLower())" />
-                        <input type="hidden" name="reviewedByMe" value="@((ViewBag.ReviewedByMe ?? false).ToString().ToLower())" />
-                        <input type="hidden" name="startedByMe" value="@((ViewBag.StartedByMe ?? false).ToString().ToLower())" />
-                        <input type="hidden" name="showArchived" value="@((ViewBag.ShowArchived ?? false).ToString().ToLower())" />
-                        <input type="hidden" name="id" value="@ViewBag.Id" />
-                    </div>
-                    <button type="submit" class="btn btn-primary ms-2" style="height:40px;">Search</button>
-                </form>
-            </div>
-    </div>
+    <form asp-action="Index" asp-controller="Reviews" method="get" class="d-flex align-items-center">
+        <input type="text" class="form-control" name="srchText" placeholder="Search"
+               value="@Context.Request.Query["srchText"]" />
+        <input type="hidden" name="showActive" value="@((ViewBag.ShowActive ?? false).ToString().ToLower())" />
+        <input type="hidden" name="reviewedByMe" value="@((ViewBag.ReviewedByMe ?? false).ToString().ToLower())" />
+        <input type="hidden" name="startedByMe" value="@((ViewBag.StartedByMe ?? false).ToString().ToLower())" />
+        <input type="hidden" name="showArchived" value="@((ViewBag.ShowArchived ?? false).ToString().ToLower())" />
+        <input type="hidden" name="id" value="@ViewBag.Id" />
+
+        <button type="submit" class="btn btn-primary ms-2" style="height: 40px;">Search</button>
+    </form>
 </div>
 
-        <!-- Companies Table -->
+</div>
+
+<div class="table-container">
+     <!-- Companies Table -->
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -216,6 +219,8 @@
                 }
             </tbody>
         </table>
+</div>
+       
 
     <!-- Pagination Buttons (Tight Style Like Activities) -->
     <div class=" d-flex justify-content-center mt-4" role="group" aria-label="Pagination">

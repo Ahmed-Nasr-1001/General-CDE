@@ -32,6 +32,13 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<style>
+        .table-container {
+            min-height: 500px;
+            max-height: 500px; /* optional, to add scroll if too long */
+            overflow-y:  auto;
+        }
+</style>
 </head>
 <body>
     <div class="d-flex">
@@ -51,48 +58,52 @@
                     </div>
                 </div>
 
-            <table class="table table-bordered" id="membersTable">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Company</th>
-                        <th>Role</th>
-                        <th>Access Level</th>
-                        <th>Added On</th>
-                        @if (hasAdminAccess)
-                        {
-                            <th><i class="fas fa-cog"></i></th>
-
-                        }
-                    </tr>
-                </thead>
-                <tbody id="membersTableBody">
-                    @foreach (var member in Model)
-                    {
-                        <tr id="row-@member.Id" class="member-row" data-id="@member.Id">
-                            <td>@member.Name</td>
-                            <td>@member.Company</td>
-                            <td>@member.Position</td>
-                            <td>@member.ProjectAccessLevel</td>
-                            <td>@member.AddedOn</td>
+            <div class="table-container">
+                <table class="table table-bordered" id="membersTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Company</th>
+                            <th>Role</th>
+                            <th>Access Level</th>
+                            <th>Added On</th>
                             @if (hasAdminAccess)
                             {
-                                <td>
-                                    <div class="action-btn">
-                                        <button class="btn btn-light btn-sm toggle-menu">
-                                            <i class="bi bi-three-dots-vertical"></i>
-                                        </button>
-                                        <div class="action-menu">
-                                            <button class="delete-btn" data-id="@member.Id" data-projectid="@ProjId">Delete</button>
+                                <th><i class="fas fa-cog"></i></th>
 
-                                        </div>
-                                    </div>
-                                </td>
                             }
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody id="membersTableBody">
+                        @foreach (var member in Model)
+                        {
+                            <tr id="row-@member.Id" class="member-row" data-id="@member.Id">
+                                <td>@member.Name</td>
+                                <td>@member.Company</td>
+                                <td>@member.Position</td>
+                                <td>@member.ProjectAccessLevel</td>
+                                <td>@member.AddedOn</td>
+                                @if (hasAdminAccess)
+                                {
+                                    <td>
+                                        <div class="action-btn">
+                                            <button class="btn btn-light btn-sm toggle-menu">
+                                                <i class="bi bi-three-dots-vertical"></i>
+                                            </button>
+                                            <div class="action-menu">
+                                                <button class="delete-btn" data-id="@member.Id" data-projectid="@ProjId">Delete</button>
+
+                                            </div>
+                                        </div>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                </div>
+
+            
 
             <!-- Pagination Controls -->
             <div class="d-flex justify-content-center align-items-center mt-3">

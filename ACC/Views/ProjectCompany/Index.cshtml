@@ -65,75 +65,85 @@
         option.already-in-project {
             color: red;
         }
+
+        .table-container {
+            min-height: 500px;
+            max-height: 500px; /* optional, to add scroll if too long */
+            overflow-y:  auto;
+        }
     </style>
 </head>
 <body>
-    <div class="container-fluid p-4">
+    <div class="container-fluid p-4" >
         <h2>Project Companies</h2>
+
+        <div class="d-flex justify-content-between align-items-center my-3">
             @if (hasAdminAccess)
-                        {
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCompanyModal">+ Add Companies</button>
-                        }
-        
-        <div class="d-flex justify-content-end my-3">
-            <div class="d-flex">
-                <form method="get" asp-controller="ProjectCompany" asp-action="Index" class="d-flex mb-6">
-                    <input type="hidden" name="id" value="@ViewBag.Id" />
-                    <input type="text" name="searchTerm" class="form-control me-2" placeholder="Search by Name" value="@ViewBag.SearchTerm" />
-                    <button type="submit" class="btn btn-primary">Search</button>
-                </form>
-            </div>
+            {
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCompanyModal">
+                    <i class="fa-solid fa-plus me-2"></i> Add Company
+                </button>
+            }
+
+            <form method="get" asp-controller="ProjectCompany" asp-action="Index" class="d-flex">
+                <input type="hidden" name="id" value="@ViewBag.Id" />
+                <input type="text" name="searchTerm" class="form-control me-2" placeholder="Search by Name" value="@ViewBag.SearchTerm" />
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
         </div>
 
-        <!-- Companies Table -->
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Address</th>
-                    <th>Description</th>
-                    <th>Country</th>
-                    <th>Website</th>
-                    <th>Phone Number</th>
-                    <th>Trade</th>
-                      @if (hasAdminAccess)
+
+        <div class="table-container">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Address</th>
+                        <th>Description</th>
+                        <th>Country</th>
+                        <th>Website</th>
+                        <th>Phone Number</th>
+                        <th>Trade</th>
+                        @if (hasAdminAccess)
                         {
-                    <th><i class="fas fa-cog"></i></th>
-                        }
-                     
-                </tr>
-            </thead>
-            <tbody id="companyTableBody">
-                @foreach (var item in Model)
-                {
-                    <tr class="company-row" data-id="@item.Id">
-                        <td>@item.Name</td>
-                        <td>@item.Address</td>
-                        <td>@item.Description</td>
-                        <td>@item.SelectedCountry</td>
-                        <td>@item.Website</td>
-                        <td>@item.PhoneNumber</td>
-                        <td>@item.SelectedCompanyType</td>
-                          @if (hasAdminAccess)
-                        {
-                            <td>
-                                <button class="btn btn-sm btn-light toggle-menu">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <div class="action-menu position-absolute bg-white border shadow-sm rounded p-2" style="display: none;">
-                                    <form asp-action="Delete" method="post" onsubmit="return confirm('Are you sure you want to delete this company?')" style="display:inline;">
-                                        <input type="hidden" name="id" value="@item.Id" />
-                                        <input type="hidden" name="projectId" value="@ViewBag.Id" />
-                                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                    </form>
-                                </div>
-                            </td>
+                            <th><i class="fas fa-cog"></i></th>
                         }
 
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody id="companyTableBody">
+                    @foreach (var item in Model)
+                    {
+                        <tr class="company-row" data-id="@item.Id">
+                            <td>@item.Name</td>
+                            <td>@item.Address</td>
+                            <td>@item.Description</td>
+                            <td>@item.SelectedCountry</td>
+                            <td>@item.Website</td>
+                            <td>@item.PhoneNumber</td>
+                            <td>@item.SelectedCompanyType</td>
+                            @if (hasAdminAccess)
+                            {
+                                <td>
+                                    <button class="btn btn-sm btn-light toggle-menu">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <div class="action-menu position-absolute bg-white border shadow-sm rounded p-2" style="display: none;">
+                                        <form asp-action="Delete" method="post" onsubmit="return confirm('Are you sure you want to delete this company?')" style="display:inline;">
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <input type="hidden" name="projectId" value="@ViewBag.Id" />
+                                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            }
+
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+       
 
         <!-- Pagination Controls (Classic, No AJAX) -->
         <div class="d-flex justify-content-center align-items-center mt-3">

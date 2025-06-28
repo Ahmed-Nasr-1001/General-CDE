@@ -3,29 +3,66 @@
     ViewBag.Title = "Versions of " + Model.Name;
 }
 
-<h2>Document: @Model.Name</h2>
-<p>Type: @Model.FileType</p>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Uploaded At</th>
-            <th>Uploaded By</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var v in Model.Versions.OrderByDescending(v => v.UploadedAt))
-        {
-            <tr>
-                <td>@v.UploadedAt.ToString("g")</td>
-                <td>@v.UploadedBy</td>
-                <td>
-                    <a class="btn btn-sm btn-success" href="@Url.Action("Download", new { versionId = v.Id })">Download</a>
-                </td>
-            </tr>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
         }
-    </tbody>
-</table>
 
-<a class="btn btn-secondary" href="@Url.Action("Index")">Back</a>
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        .btn-back {
+            width: 100px;
+        }
+
+        table {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-content">
+        <h2>Document: @Model.Name</h2>
+        <h4 class="text-danger">Type: @Model.FileType</h4>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Uploaded At</th>
+                    <th>Uploaded By</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var v in Model.Versions.OrderByDescending(v => v.UploadedAt))
+                {
+                    <tr>
+                        <td>@v.UploadedAt.ToString("g")</td>
+                        <td>@v.UploadedBy</td>
+                        <td>
+                            <a class="btn btn-sm btn-success" href="@Url.Action("Download", new { versionId = v.Id })">Download</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <a class="btn btn-secondary btn-back" href="@Url.Action("Index")">Back</a>
+    </div>
+</body>
+</html>

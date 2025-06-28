@@ -74,26 +74,31 @@
         .bt-1 {
             width: 150px;
         }
-
+         .table-container {
+            min-height: 480px;
+            max-height: 480px; /* optional, to add scroll if too long */
+            overflow-y:  auto;
+        }
     </style>
 </head>
 <body>
     <div class="container-fluid p-4">
         <h2>Activity Log</h2>
         <hr>
-
-        <div class="buttonsContainer">
-            <button id="btn_export" class="bt-1">
+        
+        <div class="d-flex justify-content-end gap-2 mb-3">
+            <button id="btn_export" class="btn btn-primary">
                 <i class="fas fa-file-export"></i> Export All
             </button>
-            <button id="btn_filters" class="bt-1">
+            <button id="btn_filters" class="btn btn-primary">
                 <i class="fas fa-filter"></i> Filters
             </button>
         </div>
 
        <partial name="_FilterPartialView" model="filterLists"/>
 
-        <!-- Activities Table -->
+       <div class="table-container">
+            <!-- Activities Table -->
         <table id="activitiesTable" class="table table-bordered">
 
             <thead>
@@ -116,6 +121,8 @@
                 }
             </tbody>
         </table>
+       </div>
+       
 
         <div class="d-flex justify-content-center align-items-center mt-4">
             <nav aria-label="Project Activities Pagination">

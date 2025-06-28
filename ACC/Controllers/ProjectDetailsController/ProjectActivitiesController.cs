@@ -23,7 +23,7 @@ namespace ACC.Controllers.ProjectDetailsController
 
 
 
-        public IActionResult Index(int id , FilterVM filter , int page = 1, int pageSize = 4)
+        public IActionResult Index(int id , FilterVM filter , int page = 1, int pageSize = 8)
         
         {
             var query = activityRepository.GetByProjectId(id);

@@ -23,12 +23,6 @@
         .document-item:hover {
             background-color: #f0f0f0;
         }
-
-    
-
-      
-
-
 </style>
 <!-- Add Subfolder Modal -->
 <div class="modal fade" id="addSubfolderModal" tabindex="-1" aria-labelledby="addSubfolderModalLabel" aria-hidden="true">
@@ -176,10 +170,10 @@
                             <li><a class="dropdown-item copy-document" href="#" data-document-id="@doc.Id">Copy To...</a></li>
                             <li><a class="dropdown-item move-document" href="#" data-document-id="@doc.Id">Move To...</a></li>
                             <li>
-                            <button class="dropdown-item delete-file-btn"
-                                    data-document-id="@doc.Id">
-                                Delete File
-                            </button>
+                                <button class="dropdown-item delete-file-btn"
+                                        data-document-id="@doc.Id">
+                                    Delete File
+                                </button>
                             </li>
 
 
@@ -236,7 +230,7 @@
             modal.show();
         });
     });
-     
+
         // Prevent dropdown menu item clicks from bubbling to document-item
         document.querySelectorAll('.dropdown-menu .dropdown-item').forEach(item => {
             item.addEventListener('click', function (e) {
@@ -247,12 +241,12 @@
                     e.preventDefault();
                     const url = this.getAttribute('href');
                     const contentDiv = document.getElementById('folderContent');
-                    contentDiv.innerHTML = `<div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>`;
+                    contentDiv.innerHTML = <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>;
 
                     fetch(url)
                         .then(res => res.ok ? res.text() : Promise.reject('Failed to load'))
                         .then(html => contentDiv.innerHTML = html)
-                        .catch(err => contentDiv.innerHTML = `<div class="text-danger">Error loading file content</div>`);
+                        .catch(err => contentDiv.innerHTML = <div class="text-danger">Error loading file content</div>);
                 }
             });
         });
@@ -270,12 +264,12 @@
                 if (!documentId) return;
 
                 const contentDiv = document.getElementById('folderContent');
-                contentDiv.innerHTML = `<div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>`;
+                contentDiv.innerHTML = <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>;
 
-                fetch(`/ProjectDocument/GetDocumentDetails/${documentId}`)
+                fetch(/ProjectDocument/GetDocumentDetails/${documentId})
                     .then(res => res.ok ? res.text() : Promise.reject('Failed to load'))
                     .then(html => contentDiv.innerHTML = html)
-                    .catch(err => contentDiv.innerHTML = `<div class="text-danger">Error loading document details</div>`);
+                    .catch(err => contentDiv.innerHTML = <div class="text-danger">Error loading document details</div>);
             });
         });
 
