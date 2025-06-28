@@ -107,7 +107,7 @@
                         <th>Status</th>
                             
                         }
-                     
+                        <th>View File</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -141,8 +141,12 @@
                                 </td>
                             }
                          
-
-
+                            <td>
+                                <button type="button" class="dropdown-item view-document" onclick="openFile(@Model[i].Id)">
+                                    View File
+                                </button>
+                            </td>
+                            `
                         </tr>
                     }
                 </tbody>
@@ -177,6 +181,54 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+     async function openFile(documentId) {
+        const fileModal = new bootstrap.Modal(document.getElementById("fileModal"));
+        const fileViewer = document.getElementById("fileViewer");
+        const loadingSpinner = document.getElementById("loadingSpinner");
+        const errorMessage = document.getElementById("errorMessage");
+
+        // Reset UI
+        fileViewer.innerHTML = '';
+        errorMessage.classList.add("d-none");
+        loadingSpinner.classList.remove("d-none");
+
+        try {
+            const response = await fetch(`/ProjectDocument/OpenFile?documentId=${documentId}`);
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            loadingSpinner.classList.add("d-none");
+
+            if (data.fileUrl && data.fileType) {
+                if (data.fileType === ".pdf") {
+                    fileViewer.innerHTML = `<iframe src="${data.fileUrl}" style="width: 100%; height: 500px;" frameborder="0"></iframe>`;
+                    fileModal.show();
+                } else if (data.fileType === ".png" || data.fileType === ".jpg") {
+                    fileViewer.innerHTML = `<img src="${data.fileUrl}" style="max-width: 100%; height: auto;" />`;
+                    fileModal.show();
+                }else if (data.fileType === ".ifc"){
+                      const viewerUrl = `/IfcViewer/Index?filePath=${encodeURIComponent(data.fileUrl)}&projectId=${(data.projectId)}`;
+                      window.location.href = viewerUrl;
+                }
+                else {
+                    throw new Error("Unsupported file type: " + data.fileType);
+                }
+            } else {
+
+
+                throw new Error("Invalid response from server.");
+            }
+        } catch (error) {
+            loadingSpinner.classList.add("d-none");
+            errorMessage.textContent = `Failed to load file: ${error.message}`;
+            errorMessage.classList.remove("d-none");
+            console.error("Error:", error);
+        }
+    }
+
+
     $(document).ready(function () {
         
         // Global variables
@@ -416,6 +468,7 @@
         }, 180000); // Every 3 minutes when idle
 
     });
+
 </script>
 
 </body>

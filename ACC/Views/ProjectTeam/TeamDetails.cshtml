@@ -1,0 +1,108 @@
+﻿@using ACC.ViewModels.TeamsVM
+@model TeamDetailsViewModel
+
+<h2>Team: @Model.TeamName</h2>
+<p>Project: <strong>@Model.ProjectName</strong></p>
+
+<table class="table table-striped mt-3">
+    <thead>
+        <tr>
+            <th>User Name</th>
+            <th>Permissions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var member in Model.Members)
+        {
+            <tr>
+                <td>@member.UserName</td>
+                <td>
+                    @foreach (var perm in member.Permissions)
+                    {
+                        <span class="badge bg-primary me-1">@perm</span>
+                    }
+                </td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-outline-secondary me-2 edit-member-btn"
+                            data-user-id="@member.UserId"
+                            data-team-id="@Model.TeamId">
+                        Edit
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger remove-member-btn"
+                            data-user-id="@member.UserId"
+                            data-team-id="@Model.TeamId">
+                        Remove
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+
+</table>
+<div class="modal fade" id="confirmRemoveModal" tabindex="-1" aria-labelledby="confirmRemoveModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Removal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to remove this team member and all their roles in this team?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button id="confirmRemoveBtn" type="button" class="btn btn-danger">Yes, Remove</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editPermissionsModal" tabindex="-1" aria-labelledby="editPermissionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" id="editPermissionsModalContent">
+            <!-- Content will be loaded via AJAX -->
+        </div>
+    </div>
+</div>
+
+<a href="/ProjectTeam/Index" class="btn btn-secondary">← Back to Teams</a>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    let removeUserId = null;
+    let removeTeamId = null;
+
+    $(document).ready(function () {
+        $('.remove-member-btn').click(function () {
+            removeUserId = $(this).data('user-id');
+            removeTeamId = $(this).data('team-id');
+            const modal = new bootstrap.Modal(document.getElementById('confirmRemoveModal'));
+            modal.show();
+        });
+
+        $('#confirmRemoveBtn').click(function () {
+            $.post('/ProjectTeam/RemoveMember', {
+                teamId: removeTeamId,
+                userId: removeUserId
+            })
+            .done(() => location.reload())
+            .fail(() => alert("Failed to remove member."));
+        });
+    });
+
+        $(document).ready(function () {
+        // existing remove-member-btn code...
+
+        $('.edit-member-btn').click(function () {
+            const userId = $(this).data('user-id');
+            const teamId = $(this).data('team-id');
+
+            $.get(`/ProjectTeam/EditMemberPermissions?teamId=${teamId}&userId=${userId}`, function (html) {
+                $('#editPermissionsModalContent').html(html);
+                const modal = new bootstrap.Modal(document.getElementById('editPermissionsModal'));
+                modal.show();
+            });
+        });
+    });
+
+</script>
