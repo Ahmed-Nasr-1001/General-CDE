@@ -555,6 +555,7 @@ namespace ACC.Controllers
             ViewBag.ReviewId = review.Id;
             ViewBag.CurrentUserId = CurrentUser.Id;
             ViewBag.Initiator = review.InitiatorUserId;
+            ViewBag.Id = review.ProjectId;
 
 
             if (CurrentUser.Id != review.InitiatorUserId && review.CurrentStep != null)
