@@ -107,7 +107,7 @@ namespace ACC.Controllers
 
 
 
-        public async Task<IActionResult> Create(int? id =1) 
+        public async Task<IActionResult> Create(int? id) 
         {
             var currentUser = await userManager.GetUserAsync(User);
 
@@ -118,6 +118,8 @@ namespace ACC.Controllers
                     .Where(u => u.Id != currentUser.Id)
                     .ToList()
             };
+
+            ViewBag.Id = id;
 
             return View("Create", vm);
         }
