@@ -1,0 +1,184 @@
+﻿@using ACC.ViewModels.TeamsVM
+@model AddTeamMembersViewModel
+
+@{
+    var permissionLevels = new[] { "View", "Create", "Delete", "Edit", "Manage" };
+
+    var filePermissions = new Dictionary<string, List<string>>
+    {
+        { "View", new() { "View Files" } },
+        { "Create", new() { "View Files", "Upload Files", "Create Folders" } },
+        { "Delete", new() { "View Files", "Upload Files", "Create Folders", "Delete Files", "Move Files", "Rename Folders", "Delete Folders" } },
+        { "Edit", new() { "View Files", "Upload Files", "Create Folders", "Delete Files", "Move Files", "Rename Folders", "Delete Folders", "Edit Files" } },
+        { "Manage", new() { "View Files", "Upload Files", "Create Folders", "Delete Files", "Move Files", "Rename Folders", "Delete Folders", "Edit Files", "Manage Files" } }
+    };
+
+    var issuePermissions = new Dictionary<string, List<string>>
+    {
+        { "View", new() { "View Issues" } },
+        { "Create", new() { "View Issues", "Create Issues" } },
+        { "Delete", new() { "View Issues", "Create Issues", "Edit Issues", "Delete Issues" } },
+        { "Edit", new() { "View Issues", "Create Issues", "Edit Issues", "Delete Issues" } },
+        { "Manage", new() { "View Issues", "Create Issues", "Edit Issues", "Delete Issues", "Manage Issues" } }
+    };
+
+    var reviewPermissions = new Dictionary<string, List<string>>
+    {
+        { "View", new() { "View Reviews" } },
+        { "Create", new() { "View Reviews", "Create Reviews", "Submit Reviews" } },
+        { "Delete", new() { "View Reviews", "Create Reviews", "Submit Reviews", "Approve/Reject Reviews" } },
+        { "Edit", new() { "View Reviews", "Create Reviews", "Submit Reviews", "Approve/Reject Reviews", "Edit Reviews" } },
+        { "Manage", new() { "View Reviews", "Create Reviews", "Submit Reviews", "Approve/Reject Reviews", "Edit Reviews", "Manage Reviews" } }
+    };
+
+    var permissionMap = new Dictionary<string, Dictionary<string, List<string>>>
+    {
+        { "file", filePermissions },
+        { "issue", issuePermissions },
+        { "review", reviewPermissions }
+    };
+}
+
+<form id="addMembersForm">
+    <input type="hidden" name="TeamId" value="@Model.TeamId" />
+
+    <table class="table table-bordered align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Select</th>
+                <th>User</th>
+                <th>Files/Folders</th>
+                <th>Issues</th>
+                <th>Reviews</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.ProjectUsers.Count; i++)
+            {
+                var user = Model.ProjectUsers[i];
+                <tr>
+                    <td>
+                        <input type="checkbox" name="SelectedUsers[@i].IsSelected" value="true" />
+                        <input type="hidden" name="SelectedUsers[@i].UserId" value="@user.UserId" />
+                    </td>
+                    <td>@user.UserName</td>
+
+                    @foreach (var category in new[] { "file", "issue", "review" })
+                    {
+                        var userPermission = category switch
+                        {
+                            "file" => user.FilePermission,
+                            "issue" => user.IssuePermission,
+                            "review" => user.ReviewPermission,
+                            _ => "View"
+                        };
+                        <td>
+                            <select class="form-select permission-dropdown"
+                                    name="SelectedUsers[@i].@(char.ToUpper(category[0]) + category.Substring(1))Permission"
+                                    data-index="@i" data-category="@category">
+                                @foreach (var level in permissionLevels)
+                                {
+                                    <option value="@level" selected="@(userPermission == level ? "selected" : null)">@level</option>
+                                }
+                            </select>
+                            <div class="mt-1 perm-desc-bar" id="perm-desc-@category-@i">
+                                @foreach (var role in permissionMap[category][userPermission])
+                                {
+                                    <span class="badge rounded-pill text-bg-primary me-1">@role</span>
+                                }
+                            </div>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">Add Members</button>
+    </div>
+</form>
+
+<style>
+    .badge {
+        font-size: 0.7rem;
+        padding: 0.4em 0.6em;
+        opacity: 0.9;
+    }
+
+    .perm-desc-bar {
+        margin-top: 4px;
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+        .perm-desc-bar .badge {
+            margin-bottom: 4px;
+        }
+
+    .form-select {
+        font-size: 0.85rem;
+    }
+</style>
+
+<script>
+    const permissionDetails = {
+        file: {
+            View: ["View Files"],
+            Create: ["View Files", "Upload Files", "Create Folders"],
+            Delete: ["View Files", "Upload Files", "Create Folders", "Delete Files", "Move Files", "Rename Folders", "Delete Folders"],
+            Edit: ["View Files", "Upload Files", "Create Folders", "Delete Files", "Move Files", "Rename Folders", "Delete Folders", "Edit Files"],
+            Manage: ["View Files", "Upload Files", "Create Folders", "Delete Files", "Move Files", "Rename Folders", "Delete Folders", "Edit Files", "Manage Files"]
+        },
+        issue: {
+            View: ["View Issues"],
+            Create: ["View Issues", "Create Issues"],
+            Delete: ["View Issues", "Create Issues", "Edit Issues", "Delete Issues"],
+            Edit: ["View Issues", "Create Issues", "Edit Issues", "Delete Issues"],
+            Manage: ["View Issues", "Create Issues", "Edit Issues", "Delete Issues", "Manage Issues"]
+        },
+        review: {
+            View: ["View Reviews"],
+            Create: ["View Reviews", "Create Reviews", "Submit Reviews"],
+            Delete: ["View Reviews", "Create Reviews", "Submit Reviews", "Approve/Reject Reviews"],
+            Edit: ["View Reviews", "Create Reviews", "Submit Reviews", "Approve/Reject Reviews", "Edit Reviews"],
+            Manage: ["View Reviews", "Create Reviews", "Submit Reviews", "Approve/Reject Reviews", "Edit Reviews", "Manage Reviews"]
+        }
+    };
+
+    function updatePermissionDescription(index, category, selectedLevel) {
+        const bar = $(`#perm-desc-${category}-${index}`);
+        bar.empty();
+        const roles = permissionDetails[category][selectedLevel] || [];
+        roles.forEach(role => {
+            bar.append(`<span class="badge rounded-pill text-bg-primary me-1">${role}</span>`);
+        });
+    }
+
+    $(document).ready(function () {
+        $('.permission-dropdown').each(function () {
+            const index = $(this).data('index');
+            const category = $(this).data('category');
+            const selected = $(this).val();
+            updatePermissionDescription(index, category, selected);
+        });
+
+        $('.permission-dropdown').on('change', function () {
+            const index = $(this).data('index');
+            const category = $(this).data('category');
+            const selected = $(this).val();
+            updatePermissionDescription(index, category, selected);
+        });
+
+        $('#addMembersModalContent').on('submit', '#addMembersForm', function (e) {
+            e.preventDefault();
+            const formData = $(this).serialize();
+            $.post('/ProjectTeam/AddMembers', formData)
+                .done(() => {
+                    bootstrap.Modal.getInstance(document.getElementById('addMembersModal')).hide();
+                    location.reload();
+                })
+                .fail(xhr => alert("Error: " + xhr.responseText));
+        });
+    });
+</script>

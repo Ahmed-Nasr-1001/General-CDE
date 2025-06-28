@@ -1,0 +1,43 @@
+﻿@model ACC.ViewModels.TeamsVM.EditMemberPermissionsViewModel
+<form id="editPermissionsForm">
+    <input type="hidden" name="TeamId" value="@Model.TeamId" />
+    <input type="hidden" name="UserId" value="@Model.UserId" />
+    <div class="modal-header">
+        <h5 class="modal-title">Edit Permissions for @Model.UserName</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+        @foreach (var category in Model.Permissions.Keys)
+        {
+            <div class="mb-3">
+                <label class="form-label">@category Permissions</label>
+                <select class="form-select" name="@category">
+                    @foreach (var level in Model.PermissionLevels)
+                    {
+                        <option value="@level" selected="@(Model.Permissions[category] == level ? "selected" : null)">
+                            @level
+                        </option>
+                    }
+                </select>
+            </div>
+        }
+    </div>
+    <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+    </div>
+</form>
+
+<script>
+    $('#editPermissionsForm').submit(function (e) {
+        e.preventDefault();
+        const formData = $(this).serialize();
+
+        $.post('/ProjectTeam/UpdateMemberPermissions', formData)
+            .done(() => {
+                bootstrap.Modal.getInstance(document.getElementById('editPermissionsModal')).hide();
+                location.reload();
+            })
+            .fail(() => alert("Failed to update permissions."));
+    });
+</script>

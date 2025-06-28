@@ -1,4 +1,5 @@
 ﻿using DataLayer.Models;
+using DataLayer.Models.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -228,7 +229,18 @@ namespace DataLayer
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
+            builder.Entity<TeamMember>()
+    .HasKey(tm => new { tm.TeamId, tm.UserId }); // Composite key
 
+            builder.Entity<TeamMember>()
+                .HasOne(tm => tm.Team)
+                .WithMany(t => t.Members)
+                .HasForeignKey(tm => tm.TeamId);
+
+            builder.Entity<TeamMember>()
+                .HasOne(tm => tm.User)
+                .WithMany(u => u.TeamMembers)
+                .HasForeignKey(tm => tm.UserId);
 
 
         }
@@ -263,8 +275,10 @@ namespace DataLayer
         public DbSet<ReviewDocumentComment> ReviewDocumentComments { get; set; }
         public DbSet<ReviewStepUser> ReviewStepUsers { get; set; }
         public DbSet<WorkflowStepUser> WorkflowStepUsers { get; set; }
-        
-       
+        public DbSet<Team> Teams { get; set; }
+        public DbSet<TeamMember> TeamMembers { get; set; }
+
+
 
         public DbSet<ApplicationUserRole> ApplicationUserRoles { get; set; }
 
