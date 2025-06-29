@@ -34,7 +34,24 @@
             var step = Model.Steps[i];
             <div class="card mb-3">
                 <div class="card-header bg-light">
-                    <strong>Step @(i + 1): @(i == 0 ? "Initial Review" : "Final Approval")</strong>
+                    @{
+                        string stepTitle;
+                        if (i == 0)
+                        {
+                            stepTitle = "Initial Review";
+                        }
+                        else if (i + 1 == Model.Steps.Count)
+                        {
+                            stepTitle = "Final Approval";
+                        }
+                        else
+                        {
+                            stepTitle = "Intermediate Step";
+                        }
+                    }
+                    <strong>Step @(i + 1): @stepTitle</strong>
+
+
                 </div>
                 <div class="card-body">
                     <p><strong>Role:</strong> @step.selectedPosition</p>

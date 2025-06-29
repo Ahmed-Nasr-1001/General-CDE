@@ -110,16 +110,16 @@
                 <nav>
                     <ul class="pagination">
                         <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                            <a class="page-link" href="?page=@(currentPage - 1)&search=@searchQuery">Previous</a>
+                            <a class="page-link" href="?ProjectId=@ProjId&page=@(currentPage - 1)&search=@searchQuery">Previous</a>
                         </li>
                         @for (int i = 1; i <= totalPages; i++)
                         {
                             <li class="page-item @(i == currentPage ? "active" : "")">
-                                <a class="page-link" href="?page=@i&search=@searchQuery">@i</a>
+                                <a class="page-link" href="?ProjectId=@ProjId&page=@i&search=@searchQuery">@i</a>
                             </li>
                         }
                         <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                            <a class="page-link" href="?page=@(currentPage + 1)&search=@searchQuery">Next</a>
+                            <a class="page-link" href="?ProjectId=@ProjId&page=@(currentPage + 1)&search=@searchQuery">Next</a>
                         </li>
                     </ul>
                 </nav>

@@ -103,7 +103,7 @@
                 <th>Type</th>
                 <th>Priority</th>
                 <th>Status</th>
-                <th>Created At</th>
+                @* <th>Created At</th> *@
                 <th>Attachment</th>
                 <th>Snapshot</th>
                 <th>File Type</th>
@@ -135,7 +135,7 @@
                     <td>@issue.Type</td>
                     <td>@issue.Priority</td>
                     <td><span class="badge bg-secondary">@issue.Status</span></td>
-                    <td>@issue.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    @* <td>@issue.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td> *@
                     <td>
                         @if (issue.DocumentId.HasValue)
                         {

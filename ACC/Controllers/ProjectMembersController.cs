@@ -47,7 +47,7 @@ namespace ACC.Controllers
         }
 
 
-        public IActionResult Index(int ProjectId, int page = 1, string search ="", int pageSize = 5)
+        public IActionResult Index(int ProjectId, int page = 1, string search ="", int pageSize = 10)
         {
 
             var userIdsInProject = _userRoleService.GetMembers(ProjectId);
