@@ -79,7 +79,7 @@ namespace ACC.Controllers.Security
                         await SignInManager.SignInAsync(UserFromDatabase, logInUserVM.RememberMe);
                         bool IsAdmin = _userRoleService.GetAll().Any(i => i.UserId == UserFromDatabase.Id && i.Role.Name == GlobalAccessLevels.AccountAdmin);
                         if(IsAdmin)  return RedirectToAction("Index", "Home");
-                        else return RedirectToAction("Index", "Project");
+                        else return RedirectToAction("Index", "Home");
                     }
                 }
                 ModelState.AddModelError("", "Invalid username and password.");
