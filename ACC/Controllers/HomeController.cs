@@ -37,8 +37,8 @@ public class HomeController : Controller
                 IssueCount = _context.Issues.Count(i => i.ProjectId == p.Id),
                 ReviewCount = _context.Reviews.Count(r => r.ProjectId == p.Id),
                 MembersCount = _userManager.Users
-    .Include(u => u.UserRoles)
-    .Count(u => u.UserRoles.Any(ur => ur.ProjectId == p.Id)),
+                              .Include(u => u.UserRoles)
+                              .Count(u => u.UserRoles.Any(ur => ur.ProjectId == p.Id)),
 
                 CreationDate = p.CreationDate,
                 IsArchived = p.IsArchived,

@@ -90,11 +90,11 @@
 					font-weight: 600;
 				}
 
-		 .table-container {
-            min-height: 400px;
-            max-height: 400px; /* optional, to add scroll if too long */
-            overflow-y:  auto;
-        }
+		.table-container {
+			min-height: 400px;
+			max-height: 400px; /* optional, to add scroll if too long */
+			overflow-y: auto;
+		}
 
 		.table {
 			width: 100%;
@@ -255,13 +255,13 @@
 												<div class="action-menu">
 													@if (showArchived == false)
 													{
-													<button class="archive-btn" data-id="@item.id">Archive</button>
+														<button class="archive-btn" data-id="@item.id">Archive</button>
 														<button class="delete-btn" data-id="@item.id">Delete</button>
 													}
 													else
 													{
-													<button class="restore-btn" data-id="@item.id">Restore</button>
-														
+														<button class="restore-btn" data-id="@item.id">Restore</button>
+
 													}
 
 												</div>
@@ -376,7 +376,7 @@
 				});
 
 
-				
+
 
 				$(document).on("click", ".delete-btn", function (e) {
 					e.preventDefault();
@@ -444,7 +444,6 @@
 			options.messages["greaterthanstart"] = options.message;
 		});
 	</script>
-
 
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDqbWUXIAolPajv3pLIleGfeg1RE0i6FjA"></script>
 

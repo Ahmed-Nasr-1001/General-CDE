@@ -1,5 +1,4 @@
 ﻿@model List<ACC.ViewModels.DashboardProjectCardVM.DashboardProjectCardVM>
-
 @using System.Text.Json
 
 @{
@@ -11,44 +10,22 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div class="container mt-4">
-    <h2 class="text-center mb-4">Projects Dashboard</h2>
+<div class="container-fluid p-4 d-flex flex-column" style="height: 100%;">
+    <h2>Projects Dashboard</h2>
 
-    <div class="row">
-        @foreach (var project in Model)
-        {
-            <div class="col-md-4 mb-4">
-                <div class="card shadow border-0 h-100">
-                    <div class="card-body">
-                        <h5 class="card-title text-primary">@project.Name</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">#@project.ProjectNumber</h6>
-                        <p class="card-text">
-                            <strong>Created:</strong> @project.CreationDate?.ToShortDateString() <br />
-                            <strong>Status:</strong> @(project.IsArchived ? "Archived" : "Active") <br />
-                            <strong>Members:</strong> @project.MembersCount <br />
-                            <strong>Issues:</strong> @project.IssueCount <br />
-                            <strong>Reviews:</strong> @project.ReviewCount
-                        </p>
-                    </div>
-                </div>
-            </div>
-        }
-    </div>
-
-    <hr class="my-5" />
-
-    <div class="mt-5">
-        <h4 class="text-center mb-3">Project Stats Comparison</h4>
-        <canvas id="projectStatsChart" height="200"></canvas>
+    <div class="mb-5">
+        <canvas id="projectStatsChart" style="max-height: 600px; width: 100%;"></canvas>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        const projectNames = @Html.Raw(JsonSerializer.Serialize(Model.Select(p => p.Name)));
-        const memberCounts = @Html.Raw(JsonSerializer.Serialize(Model.Select(p => p.MembersCount)));
-        const reviewCounts = @Html.Raw(JsonSerializer.Serialize(Model.Select(p => p.ReviewCount)));
-        const issueCounts = @Html.Raw(JsonSerializer.Serialize(Model.Select(p => p.IssueCount)));
+        const projects = @Html.Raw(JsonSerializer.Serialize(Model));
+
+        const projectNames = projects.map(p => p.Name);
+        const memberCounts = projects.map(p => p.MembersCount);
+        const reviewCounts = projects.map(p => p.ReviewCount);
+        const issueCounts = projects.map(p => p.IssueCount);
 
         const ctx = document.getElementById('projectStatsChart').getContext('2d');
         new Chart(ctx, {
@@ -76,16 +53,45 @@
             options: {
                 indexAxis: 'y',
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'top' },
+                    legend: {
+                        position: 'top'
+                    },
                     title: {
                         display: true,
-                        text: 'Comparison of Members, Reviews, and Issues per Project'
+                        text: 'Members, Reviews, and Issues per Project'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            afterBody: function (context) {
+                                const index = context[0].dataIndex;
+                                const project = projects[index];
+                                return [
+                                    'Project #: ' + project.ProjectNumber,
+                                    'Status: ' + (project.IsArchived ? 'Archived' : 'Active'),
+                                    'Created: ' + (project.CreationDate ? project.CreationDate.split('T')[0] : 'N/A')
+                                ];
+                            }
+                        }
                     }
                 },
                 scales: {
                     x: {
-                        beginAtZero: true
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        },
+                        title: {
+                            display: true,
+                            text: 'Count'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Projects'
+                        }
                     }
                 }
             }
