@@ -8,7 +8,7 @@
 	int pageSize = 5;
 	int currentPage = Convert.ToInt32(ViewBag.CurrentPage ?? 1);
 	int totalPages = Convert.ToInt32(ViewBag.TotalPages ?? 1);
-	bool showArchived = ViewBag.ShowArchived != null && (bool)ViewBag.ShowArchived;
+	bool showArchived = ViewBag.ShowArchived;
 	int totalItems = Convert.ToInt32(ViewBag.TotalItems ?? Model.Count);
 	string srchText = Context.Request.Query["srchText"];
 }
@@ -85,19 +85,16 @@
 				}
 
 				.nav-links a.active {
-					color: #007bff;
+					color: #007bff !important;
 					border-bottom: 3px solid #007bff;
 					font-weight: 600;
 				}
 
-		.table-container {
-			width: 100%;
-			min-height: 550px;
-			overflow-x: auto;
-			margin-top: 20px;
-			border-radius: 8px;
-			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-		}
+		 .table-container {
+            min-height: 400px;
+            max-height: 400px; /* optional, to add scroll if too long */
+            overflow-y:  auto;
+        }
 
 		.table {
 			width: 100%;
@@ -191,6 +188,7 @@
 			<div class="nav-links mb-3">
 				<a href="@Url.Action("Index", new { showArchived = false })" class="@(showArchived == false ? "active" : "")">Active</a>
 				<a href="@Url.Action("Index", new { showArchived = true })" class="@(showArchived == true ? "active" : "")">Archived</a>
+
 			</div>
 
 			@if (UserRoleService.HasGlobalAccess(CurrentUserId, GlobalAccessLevels.AccountAdmin))
@@ -248,24 +246,28 @@
 									<td>@item.CreationDate?.ToString("MM/dd/yyyy")</td>
 									@if (UserRoleService.HasGlobalAccess(CurrentUserId, GlobalAccessLevels.AccountAdmin))
 									{
+
 										<td>
-											<div class="dropdown">
-												<button class="btn btn-light btn-sm dropdown-toggle" type="button" id="dropdownMenuButton_@item.id" data-bs-toggle="dropdown" aria-expanded="false">
-													&#x22EE;
+											<div class="action-btn">
+												<button class="btn btn-light btn-sm toggle-menu">
+													<i class="bi bi-three-dots-vertical"></i>
 												</button>
-												<ul class="dropdown-menu" aria-labelledby="dropdownMenuButton_@item.id">
+												<div class="action-menu">
 													@if (showArchived == false)
 													{
-														<li><a class="dropdown-item archive-project" data-id="@item.id" href="#">Archive project</a></li>
-														<li><a class="dropdown-item text-danger delete-project" data-id="@item.id" href="#">Delete project</a></li>
+													<button class="archive-btn" data-id="@item.id">Archive</button>
+														<button class="delete-btn" data-id="@item.id">Delete</button>
 													}
 													else
 													{
-														<li><a class="dropdown-item restore-project" data-id="@item.id" href="#">Restore project</a></li>
+													<button class="restore-btn" data-id="@item.id">Restore</button>
+														
 													}
-												</ul>
+
+												</div>
 											</div>
 										</td>
+
 									}
 								</tr>
 							}
@@ -305,7 +307,7 @@
 
 		// Your existing code continues here...
 		$(document).on("click", ".project-row", function (e) {
-			if (!$(e.target).closest(".dropdown").length) {
+			if (!$(e.target).closest(".action-btn").length) {
 				var projectId = $(this).data("project-id");
 				window.location.href = "/ProjectMembers/Index?ProjectId=" + projectId;
 			}
@@ -313,7 +315,7 @@
 
 			$(document).ready(function () {
 				$(document).on("click", ".project-row", function (e) {
-					if (!$(e.target).closest(".dropdown").length) {
+					if (!$(e.target).closest(".action-btn").length) {
 						var projectId = $(this).data("project-id");
 						window.location.href = "/ProjectMembers/Index?ProjectId=" + projectId;
 					}
@@ -360,8 +362,25 @@
 					});
 				});
 
-				$(document).on("click", ".delete-project", function (e) {
+					  $(document).on("click", ".toggle-menu", function (e) {
+					e.stopPropagation();
+					var $menu = $(this).siblings(".action-menu");
+					$(".action-menu").not($menu).hide();
+					$menu.toggle();
+				});
+
+				$(document).on("click", function (e) {
+					if (!$(e.target).closest(".action-btn").length) {
+						$(".action-menu").hide();
+					}
+				});
+
+
+				
+
+				$(document).on("click", ".delete-btn", function (e) {
 					e.preventDefault();
+
 					var projectId = $(this).data("id");
 
 					if (confirm("Are you sure you want to delete this project?")) {
@@ -381,7 +400,7 @@
 					}
 				});
 
-				$(document).on("click", ".archive-project", function (e) {
+				$(document).on("click", ".archive-btn", function (e) {
 					e.preventDefault();
 					var projectId = $(this).data("id");
 					$.ajax({
@@ -396,7 +415,7 @@
 					});
 				});
 
-				$(document).on("click", ".restore-project", function (e) {
+				$(document).on("click", ".restore-btn", function (e) {
 					e.preventDefault();
 					var projectId = $(this).data("id");
 					$.ajax({

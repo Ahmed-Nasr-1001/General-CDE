@@ -9,13 +9,14 @@
 }
 <h2>Teams</h2>
 
-
+<hr />
 
 <div class="d-flex justify-content-between mb-3">
     <div>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTeamModal">Add Team</button>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTeamModal">+ Add Team Subfolder</button>
     </div>
 </div>
+<br />
 
 <div id="teamsTable">
     <partial name="_TeamsTable" model="Model.ExistingTeams" />
@@ -26,7 +27,7 @@
         <div class="modal-content">
             <form id="addTeamForm">
                 <div class="modal-header">
-                    <h5 class="modal-title">Add Teams</h5>
+                    <h5 class="modal-title">Add Subfolder</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
@@ -36,7 +37,7 @@
                         <input type="hidden" name="projectId" value="@id" />
 
                         <input type="text" name="newTeamName" id="newTeamName" class="form-control me-2"
-                               placeholder="Enter a team name." />
+                               placeholder="Enter a team subfolder name." />
                         <button type="submit" id="addBtn" class="btn btn-primary" disabled>Add</button>
                         @* <button type="button" class="btn btn-light ms-2">Select existing folder</button> *@
                     </div>

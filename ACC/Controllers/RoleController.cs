@@ -3,6 +3,7 @@ using BusinessLogic.Repository.RepositoryInterfaces;
 using DataLayer.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 
 namespace ACC.Controllers
@@ -15,7 +16,7 @@ namespace ACC.Controllers
         {
             _roleManamger = roleManamger;
         }
-        public IActionResult Index()
+        public IActionResult Index(string searchTerm = null)
         {
             var Roles = _roleManamger.Roles.Where(r=>r.ProjectPosition == true);
 
@@ -24,6 +25,13 @@ namespace ACC.Controllers
             {
                 RoleName = x.Name
             }).ToList();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                roleViewModel = roleViewModel.Where(i => i.RoleName.ToLower().Contains(searchTerm.ToLower())).ToList();
+            }
+
+            ViewBag.SearchTerm = searchTerm;
             return View(roleViewModel);
 
 

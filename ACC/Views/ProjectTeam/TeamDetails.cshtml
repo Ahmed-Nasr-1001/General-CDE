@@ -1,5 +1,8 @@
 ﻿@using ACC.ViewModels.TeamsVM
 @model TeamDetailsViewModel
+@{
+    int proId = ViewBag.ProId;
+}
 
 <h2>Team: @Model.TeamName</h2>
 <p>Project: <strong>@Model.ProjectName</strong></p>
@@ -65,7 +68,7 @@
     </div>
 </div>
 
-<a href="/ProjectTeam/Index" class="btn btn-secondary">← Back to Teams</a>
+<a asp-controller="ProjectTeam" asp-action="Index" asp-route-Id="@proId" class="btn btn-secondary">← Back to Teams</a>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>

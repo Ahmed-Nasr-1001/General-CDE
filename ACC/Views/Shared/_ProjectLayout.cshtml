@@ -412,14 +412,6 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a asp-controller="ProjectCompany" asp-action="Index" asp-route-id="@id" class="nav-link text-dark">
-                        <div class="nav-link-content">
-                            <i class="fa-solid fa-users me-3"></i>
-                            <span>Companies</span>
-                        </div>
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a asp-controller="ProjectDocument" asp-action="Index" asp-route-id="@id" class="nav-link text-dark">
                         <div class="nav-link-content">
                             <i class="fa-solid fa-folder me-3"></i>
@@ -428,6 +420,15 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a asp-controller="ProjectCompany" asp-action="Index" asp-route-id="@id" class="nav-link text-dark">
+                        <div class="nav-link-content">
+                            <i class="fa-solid fa-users me-3"></i>
+                            <span>Companies</span>
+                        </div>
+                    </a>
+                </li>
+               
+                <li class="nav-item">
                     <a asp-controller="ProjectMembers" asp-action="Index" asp-route-ProjectId="@id" class="nav-link text-dark">
                         <div class="nav-link-content">
                             <i class="fa-solid fa-building me-3"></i>
@@ -435,11 +436,13 @@
                         </div>
                     </a>
                 </li>
+                
+             
                 <li class="nav-item">
-                    <a asp-controller="ProjectIssue" asp-action="Index" asp-route-id="@id" class="nav-link text-dark">
+                    <a asp-controller="ProjectTeam" asp-action="index" asp-route-id="@id" class="nav-link text-dark">
                         <div class="nav-link-content">
-                            <i class="fa-solid fa-bug me-3"></i>
-                            <span>Project Issues</span>
+                            <i class="fa-solid fa-cog me-3"></i>
+                            <span>Teams</span>
                         </div>
                     </a>
                 </li>
@@ -451,6 +454,15 @@
                         </div>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a asp-controller="ProjectIssue" asp-action="Index" asp-route-id="@id" class="nav-link text-dark">
+                        <div class="nav-link-content">
+                            <i class="fa-solid fa-bug me-3"></i>
+                            <span>Project Issues</span>
+                        </div>
+                    </a>
+                </li>
+               
                 <li class="nav-item">
                     <a asp-controller="ProjectActivities" asp-action="index" asp-route-id="@id" class="nav-link text-dark">
                         <div class="nav-link-content">
@@ -467,14 +479,7 @@
                         </div>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a asp-controller="ProjectTeam" asp-action="index" asp-route-id="@id" class="nav-link text-dark">
-                        <div class="nav-link-content">
-                            <i class="fa-solid fa-cog me-3"></i>
-                            <span>Teams</span>
-                        </div>
-                    </a>
-                </li>
+              
             </ul>
 
             <!-- Sidebar Toggle Button -->

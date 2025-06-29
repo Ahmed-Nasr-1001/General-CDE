@@ -6,11 +6,10 @@
     <thead>
     <thead>
         <tr>
-            <th><input type="checkbox" /></th>
-            <th>Team</th>
+            <th>Team Subfolder</th>
             <th>Path</th>
-            <th>Members</th>
-            <th class="text-end">Actions</th>
+            <th>Team Members</th>
+            <th>Actions</th>
         </tr>
     </thead>
 
@@ -21,13 +20,12 @@
             foreach (var team in Model)
             {
                 <tr>
-                    <td><input type="checkbox" /></td>
                     <td>@team.TeamName</td>
                     <td>@team.ParentFolder</td>
                     <td>@team.MemberCount</td>
-                    <td class="text-end">
+                    <td>
                         <button class="btn btn-sm btn-primary me-1 add-members-btn" data-team-id="@team.Id">
-                            Add Members
+                            Create Team
                         </button>
                         <a href="/ProjectTeam/TeamDetails?teamId=@team.Id" class="btn btn-sm btn-info me-1 text-white">
                             Details

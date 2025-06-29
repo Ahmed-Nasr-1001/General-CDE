@@ -426,7 +426,7 @@ namespace ACC.Controllers.ProjectDetailsController
                 }).ToList()
             };
 
-
+            ViewBag.ProId = team.ProjectId;
             return View("TeamDetails", model);
         }
         [HttpPost]

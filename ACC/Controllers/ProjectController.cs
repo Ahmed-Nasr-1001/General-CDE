@@ -49,11 +49,11 @@ namespace ACC.Controllers
             // Get paginated projects with showArchived filter
             var projects = projectRepo.GetPaginatedProjects(Page, Pagesize, srchText, showArchived);
 
-            // If no projects are found, return an empty list
-            if (projects == null || !projects.Any())
-            {
-                return View(new List<DisplayProjectsVM>());
-            }
+            //// If no projects are found, return an empty list
+            //if (projects == null || !projects.Any())
+            //{
+            //    return View(new List<DisplayProjectsVM>());
+            //}
 
             // Map the projects to the ViewModel
             List<DisplayProjectsVM> displayProject = projects.Select(p => new DisplayProjectsVM
@@ -111,7 +111,7 @@ namespace ACC.Controllers
                 projectRepo.Insert(newProject);
                 projectRepo.Save();
                 var currentUser = await userManager.GetUserAsync(User);
-                projectActivityRepo.AddNewActivity(currentUser, newProject.Id , "Project Added", $"Project \"{newProject.Name}\" archived.");
+                projectActivityRepo.AddNewActivity(currentUser, newProject.Id , "Project Added", $"Project \"{newProject.Name}\" added.");
                 projectActivityRepo.Save();
 
 
