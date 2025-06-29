@@ -332,9 +332,10 @@ namespace ACC.Controllers
                 }
             }
 
-
+            
             return RedirectToAction("Index", new { id = model.ProjectId });
         }
+
         [HttpGet]
         public async Task<IActionResult> OpenFile(int documentId)
         {
@@ -505,7 +506,7 @@ namespace ACC.Controllers
                     .Where(u => u.Id != currentUser.Id)
                     .ToList()
             };
-
+            ViewBag.Id = id;
             return View(model);
         }
 
@@ -703,7 +704,7 @@ namespace ACC.Controllers
                     .Where(u => u.Id != currentUser.Id)
                     .ToList()
             };
-
+            ViewBag.Id = projectId;
             return View("Create", vm);
         }
 
