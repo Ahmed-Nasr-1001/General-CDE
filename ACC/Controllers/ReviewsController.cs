@@ -122,7 +122,7 @@ namespace ACC.Controllers
             ViewBag.CreateReviewVM = new CreateReviewVM
             {
                 proId = id,
-                WorkflowTemplates = _workflowRepository.GetAll().ToList(),
+                WorkflowTemplates = _workflowRepository.GetAll().Where(i=>i.ProjectId==id).ToList(),
                 FinalReviewStatuses = Enum.GetValues(typeof(FinalReviewStatus)).Cast<FinalReviewStatus>().ToList(),
                 AllFolders = FolderService.GetFolderWithDocumentTree(),
             };

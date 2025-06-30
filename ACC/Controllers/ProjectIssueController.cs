@@ -506,8 +506,8 @@ namespace ACC.Controllers
                     .Where(u => u.Id != currentUser.Id)
                     .ToList()
             };
-            ViewBag.Id = id;
-            return View(model);
+            ViewBag.Id = issue.pro;
+            return View("Edit",model);
         }
 
 
@@ -671,7 +671,7 @@ namespace ACC.Controllers
             }
 
             /////////////
-            
+            ViewBag.Id = issue.ProjectId;
 
             return RedirectToAction("Index", new { id = issue.ProjectId });
         }
