@@ -62,7 +62,7 @@
                 <table class="table table-bordered" id="membersTable">
                     <thead>
                         <tr>
-                            <th>Name</th>
+                            <th>Email</th>
                             <th>Company</th>
                             <th>Role</th>
                             <th>Access Level</th>
@@ -272,19 +272,19 @@
 
                 $(this).closest(".action-menu").hide();
 
-                $.ajax({
-                    url: "/ProjectMembers/Delete/" + memberId,
-                    type: "POST",
-                    data: { ProjectId: projectId },
-                    success: function () {
-                        $("#row-" + memberId).remove();
-                        toastr.success("Member deleted successfully!");
-                        $("#memberDetailsPanel").removeClass("show");
-                    },
-                    error: function () {
-                        toastr.error("Failed to delete member.");
-                    }
-                });
+                        $.ajax({
+            url: "/ProjectMembers/Delete/" + memberId + "?ProjectId=" + projectId,
+            type: "POST",
+            success: function () {
+                $("#row-" + memberId).remove();
+                toastr.success("Member deleted successfully!");
+                $("#memberDetailsPanel").removeClass("show");
+            },
+            error: function () {
+                toastr.error("Failed to delete member.");
+            }
+        });
+
             });
 
             });

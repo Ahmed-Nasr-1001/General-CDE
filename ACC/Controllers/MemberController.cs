@@ -127,13 +127,25 @@ namespace ACC.Controllers
                     projectActivityRepository.Save();
                     return RedirectToAction("Index", "Member");
 
-            }
+                }
 
             foreach (var error in result.Errors)
+            {
+                if (error.Code.Contains("Password"))
                 {
+                    ModelState.AddModelError(nameof(memberFromReq.Password), error.Description);
+                }
+                else if (error.Code.Contains("Email") || error.Code.Contains("UserName"))
+                {
+                    ModelState.AddModelError(nameof(memberFromReq.Email), error.Description);
+                }
+                else
+                {
+                    // general error
                     ModelState.AddModelError("", error.Description);
                 }
-            
+            }
+
 
 
 

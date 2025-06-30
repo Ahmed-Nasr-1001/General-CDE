@@ -13,7 +13,7 @@ namespace BusinessLogic.Repository.RepositoryClasses
         AppDbContext Context;
         public CompanyRepository(AppDbContext context) : base(context)
         {
-            Context = context; ;
+            Context = context; 
         }
 
         public IEnumerable<Company> SearchCompanies(string searchTerm, CompanyType? companyType)

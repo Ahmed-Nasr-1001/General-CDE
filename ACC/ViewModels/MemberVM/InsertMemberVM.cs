@@ -38,6 +38,9 @@ namespace ACC.ViewModels.MemberVM
         public string? currentGlobalAccessLevelId { get; set; }
 
         [Required(ErrorMessage = "Password is required")]
+        [StringLength(100, MinimumLength = 8)]
+        [RegularExpression("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*\\W).+$",
+         ErrorMessage = "Password must contain uppercase, lowercase, number, and symbol.")]
         [DataType(DataType.Password)]
         public string Password { get; set; }
 

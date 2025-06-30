@@ -102,11 +102,28 @@ namespace ACC.Controllers
 
 
         [HttpPost]
-        [HasRoles(GlobalAccessLevels.AccountAdmin, ProjectAccessLevels.ProjectAdmin)]
+        [ValidateAntiForgeryToken]
+        [HasRoles(GlobalAccessLevels.AccountAdmin, projectIdRouteKey: "ProjectId", ProjectAccessLevels.ProjectAdmin)]
+
 
         public async Task<IActionResult> InsertMember(InserProjecttMembersVM memberFromReq, int ProjectId)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage).ToList();
+                foreach (var err in errors)
+                {
 
+                    Console.WriteLine("❌ " + err);
+                }
+                ViewBag.Members = _userManager.Users.ToList();
+                ViewBag.ProAccessLevelsList = _userRoleService.AllProjectAccessLevels();
+                ViewBag.PositionsList = _userRoleService.AllProjectPositions();
+                ViewBag.ProjId = ProjectId;
+                ViewBag.Id = ProjectId;
+                return PartialView("PartialViews/_AddProjectMembersPartialView",memberFromReq); 
+            }
 
             var memebr = _userManager.Users.Where(u => u.UserName == memberFromReq.Name).FirstOrDefault();
 
@@ -146,7 +163,7 @@ namespace ACC.Controllers
         }
 
         [HttpPost]
-        [HasRoles(GlobalAccessLevels.AccountAdmin, ProjectAccessLevels.ProjectAdmin)]
+        [HasRoles(GlobalAccessLevels.AccountAdmin, projectIdRouteKey: "ProjectId", ProjectAccessLevels.ProjectAdmin)]
 
         public async Task<IActionResult> Delete(string id, int ProjectId)
         {
@@ -168,7 +185,7 @@ namespace ACC.Controllers
         }
 
         [HttpGet]
-        [HasRoles(GlobalAccessLevels.AccountAdmin, ProjectAccessLevels.ProjectAdmin)]
+        [HasRoles(GlobalAccessLevels.AccountAdmin, projectIdRouteKey: "ProjectId", ProjectAccessLevels.ProjectAdmin)]
 
         public IActionResult Details(string id, int? ProjectId = null)
         {
@@ -189,7 +206,7 @@ namespace ACC.Controllers
         }
 
         [HttpPost]
-        [HasRoles(GlobalAccessLevels.AccountAdmin, ProjectAccessLevels.ProjectAdmin)]
+        [HasRoles(GlobalAccessLevels.AccountAdmin, projectIdRouteKey: "ProjectId", ProjectAccessLevels.ProjectAdmin)]
 
         public async Task<IActionResult> Update(string id, int ProjectId, [FromBody] UpdateMemberVM member)
         {
@@ -266,7 +283,7 @@ namespace ACC.Controllers
 
 
         [HttpGet]
-        [HasRoles(GlobalAccessLevels.AccountAdmin, ProjectAccessLevels.ProjectAdmin)]
+        [HasRoles(GlobalAccessLevels.AccountAdmin, projectIdRouteKey: "ProjectId", ProjectAccessLevels.ProjectAdmin)]
 
         public IActionResult GetUpdatePartial(string id, int ProjectId)
 

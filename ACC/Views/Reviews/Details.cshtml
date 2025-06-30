@@ -193,7 +193,8 @@
         loadingSpinner.classList.remove("d-none");
 
         try {
-            const response = await fetch(`/ProjectDocument/OpenFile?documentId=${documentId}`);
+            const response = await fetch(`@Url.Action("OpenFile", "ProjectDocument")?documentId=${documentId}`);
+
             if (!response.ok) {
                 throw new Error(`Server error: ${response.statusText}`);
             }

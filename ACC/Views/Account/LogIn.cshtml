@@ -246,6 +246,16 @@
                     <div class="user-body"></div>
                 </div>
             </div>
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger text-center py-2 px-3 mb-3" style="font-size: 14px;">
+                    @foreach (var error in ViewData.ModelState[""].Errors)
+                    {
+                        <p class="mb-0">@error.ErrorMessage</p>
+                    }
+                </div>
+
+            }
 
             <div class="form-section">
                 <form asp-action="LogIn" method="post" id="loginForm">

@@ -99,6 +99,11 @@ namespace BusinessLogic.Repository.RepositoryClasses
                 .FirstOrDefault(r => r.Id == Id);
         }
 
+        public Document GetDocById(int id)
+        {
+            return Context.Documents.Include(i => i.Versions).FirstOrDefault(i => i.Id == id);
+        }
+
     }
 
 }

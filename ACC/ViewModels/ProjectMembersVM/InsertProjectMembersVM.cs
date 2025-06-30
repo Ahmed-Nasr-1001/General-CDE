@@ -14,9 +14,8 @@ namespace ACC.ViewModels.MemberVM.MemberVM
         public string? Name { get; set; }    
         public string? Email { get; set; }
         public int? CompanyId { get; set; }
-        [Required(ErrorMessage = "Global access level is required")]
         public string? GlobalAccessLevelId { get; set; }
-        [Required(ErrorMessage = "Rule is required")]
+        [Required(ErrorMessage = "Role is required")]
 
         public string? PositionId { get; set; }
         [Required(ErrorMessage = "Project access level is required")]
@@ -34,15 +33,7 @@ namespace ACC.ViewModels.MemberVM.MemberVM
 
         public string? currentGlobalAccessLevelId { get; set; }
 
-        [Required(ErrorMessage = "Password is required")]
-        [DataType(DataType.Password)]
-        public string Password { get; set; }
-
-        [Required(ErrorMessage = "Please confirm your password")]
-        [DataType(DataType.Password)]
-        [Display(Name = "Confirm Password")]
-        [Compare("Password", ErrorMessage = "Passwords do not match")]
-        public string ConfirmPassword { get; set; }
+        
 
     }
 }

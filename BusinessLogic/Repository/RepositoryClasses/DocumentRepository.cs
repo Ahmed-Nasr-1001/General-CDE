@@ -1,6 +1,7 @@
 ﻿using BusinessLogic.Repository.RepositoryInterfaces;
 using DataLayer;
 using DataLayer.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,5 +16,7 @@ namespace BusinessLogic.Repository.RepositoryClasses
         {
 
         }
+
+       
     }
 }

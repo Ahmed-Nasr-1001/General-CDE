@@ -1,18 +1,19 @@
-﻿using System.Linq;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using ACC.Services;
+﻿using ACC.Services;
 using ACC.ViewModels.ReviewsVM;
 using BusinessLogic.Repository.RepositoryClasses;
 using BusinessLogic.Repository.RepositoryInterfaces;
 using DataLayer;
 using DataLayer.Models;
 using DataLayer.Models.Enums;
+using Humanizer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace ACC.Controllers
 {
@@ -31,8 +32,9 @@ namespace ACC.Controllers
         private readonly INotificationService _notificationService;
         private readonly IProjetcRepository projetcRepository;
         private readonly IProjectActivityRepository projectActivityRepository;
+        private readonly IWebHostEnvironment _env;
 
-        public ReviewsController( IDocumentRepository documentRepository ,IReviewRepository reviewRepo, IWorkflowRepository workflowRepo, IWorkFlowStepRepository workFlowStepRepo, FolderService folderService, ReviewDocumentService reviewDocumentService, ReviewFolderService reviewFolderService ,WorkflowStepsUsersService workflowStepsUsersService, ReviewStepUsersService reviewStepUsersService , UserManager<ApplicationUser> userManager, INotificationService notificationService , IProjetcRepository projetcRepository , IProjectActivityRepository projectActivityRepository)
+        public ReviewsController(IWebHostEnvironment env, IDocumentRepository documentRepository ,IReviewRepository reviewRepo, IWorkflowRepository workflowRepo, IWorkFlowStepRepository workFlowStepRepo, FolderService folderService, ReviewDocumentService reviewDocumentService, ReviewFolderService reviewFolderService ,WorkflowStepsUsersService workflowStepsUsersService, ReviewStepUsersService reviewStepUsersService , UserManager<ApplicationUser> userManager, INotificationService notificationService , IProjetcRepository projetcRepository , IProjectActivityRepository projectActivityRepository)
         {
             _documentRepository = documentRepository;
             _reviewRepository = reviewRepo;
@@ -47,6 +49,7 @@ namespace ACC.Controllers
             _notificationService = notificationService;
             this.projetcRepository = projetcRepository;
             this.projectActivityRepository = projectActivityRepository;
+            _env = env;
         }
         public async Task<IActionResult> Index(int id ,string? srchText = null, bool showActive = false ,bool showArchived = false , bool reviewedByMe = false ,bool startedByMe = false , int page = 1, int pageSize = 4)
                      
@@ -440,6 +443,29 @@ namespace ACC.Controllers
                             doc.CreatedBy = item.Document.CreatedBy;
                             doc.Versions = new List<DocumentVersion>();
                             doc.FileType = item.Document.FileType;
+
+                            var document = _reviewRepository.GetDocById(item.DocumentId);
+                            var rootPath = Path.Combine(_env.WebRootPath, "uploads");
+                            var sourceFolderPath = Path.Combine(rootPath, document.ProjectId.ToString(), document.FolderId.ToString());
+                            var targetFolderPath = Path.Combine(rootPath, document.ProjectId.ToString(), DistId.ToString());
+                            Directory.CreateDirectory(targetFolderPath);
+
+                            foreach (var version in document.Versions)
+                            {
+                                var fileName = Path.GetFileName(version.FilePath);
+                                var newFilePath = Path.Combine(targetFolderPath, fileName);
+
+                                if (System.IO.File.Exists(version.FilePath))
+                                    System.IO.File.Copy(version.FilePath, newFilePath, overwrite: true);
+
+                                doc.Versions.Add(new DocumentVersion
+                                {
+                                    FilePath = newFilePath,
+                                    UploadedAt = version.UploadedAt,
+                                    UploadedBy = version.UploadedBy,
+                                    VersionNumber = version.VersionNumber
+                                });
+                            }
 
                             _documentRepository.Insert(doc);
                             _documentRepository.Save();

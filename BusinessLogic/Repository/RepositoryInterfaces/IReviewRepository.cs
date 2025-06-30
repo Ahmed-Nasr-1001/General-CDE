@@ -21,5 +21,7 @@ namespace BusinessLogic.Repository.RepositoryInterfaces
 
         //For Notification 
         Review GetReviewByIdForNotification(int Id);
+
+        Document GetDocById(int id);
     }
 }

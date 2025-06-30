@@ -64,29 +64,31 @@ namespace ACC.Controllers.Security
             return View("LogIn");
         }
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> LogIn(LogInUserVM logInUserVM )
+        public async Task<IActionResult> LogIn(LogInUserVM logInUserVM)
         {
-            if(ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                ApplicationUser UserFromDatabase = await UserManager.FindByNameAsync(logInUserVM.UserName);
+                var user = await UserManager.FindByNameAsync(logInUserVM.UserName);
 
-                if (UserFromDatabase != null)
+                if (user != null)
                 {
-                    bool IsFound = await UserManager.CheckPasswordAsync(UserFromDatabase, logInUserVM.Password);
-                    if (IsFound)
+                    bool isPasswordCorrect = await UserManager.CheckPasswordAsync(user, logInUserVM.Password);
+                    if (isPasswordCorrect)
                     {
-                        await SignInManager.SignInAsync(UserFromDatabase, logInUserVM.RememberMe);
-                        bool IsAdmin = _userRoleService.GetAll().Any(i => i.UserId == UserFromDatabase.Id && i.Role.Name == GlobalAccessLevels.AccountAdmin);
-                        if(IsAdmin)  return RedirectToAction("Index", "Home");
-                        else return RedirectToAction("Index", "Home");
+                        await SignInManager.SignInAsync(user, logInUserVM.RememberMe);
+
+                        bool isAdmin = _userRoleService.GetAll().Any(i => i.UserId == user.Id && i.Role.Name == GlobalAccessLevels.AccountAdmin);
+
+                        return RedirectToAction("Index", "Home");
                     }
                 }
-                ModelState.AddModelError("", "Invalid username and password.");
+
+                ModelState.AddModelError("", "Invalid username or password.");
             }
 
-            return RedirectToAction("LogIn", logInUserVM);
+            return View(logInUserVM);
         }
+
 
         public async Task<IActionResult> LogOut()
         {
